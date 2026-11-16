@@ -31,10 +31,13 @@ At work I replaced a pincode field in our lead forms with a city dropdown. Drop-
 
 ```bash
 npm install
+cp .env.example .env.local   # then set BETTER_AUTH_SECRET
 npm run dev
 ```
 
 Open http://localhost:3001 (the dev and start scripts use port 3001).
+
+**No database setup needed locally.** Without `DATABASE_URL`, FormFlow uses [PGlite](https://pglite.dev), a real Postgres compiled to WebAssembly, stored in `./.data` and migrated automatically on first request. In production, set `DATABASE_URL` to any Postgres (e.g. Neon) and run `npm run db:migrate`. The same Drizzle schema and queries run on both.
 
 | Script | |
 |---|---|
@@ -43,6 +46,15 @@ Open http://localhost:3001 (the dev and start scripts use port 3001).
 | `npm start` | Serve the production build |
 | `npm run lint` | ESLint |
 | `npm test` | Unit tests (Vitest) |
+| `npm run db:generate` | Generate a SQL migration after changing `src/db/schema.ts` |
+| `npm run db:migrate` | Apply migrations to `DATABASE_URL` |
+
+## Accounts and data
+
+- **Auth** with [Better Auth](https://www.better-auth.com): email and password, sessions in Postgres, cookie-cached for 5 minutes.
+- **Server actions** for every write (`src/app/actions/forms.ts`). Each one checks the session and ownership, and validates the form JSON with zod before saving.
+- **Soft delete**, so "Undo" after deleting a form is a single update.
+- **Builder autosave** is debounced and serialized: saves run one at a time, in order, so a slow request can't overwrite a newer one. The header shows Saving / Saved / Couldn't save · Retry.
 
 ## The builder
 
@@ -50,7 +62,7 @@ Open http://localhost:3001 (the dev and start scripts use port 3001).
 
 - **Drag and drop** with [dnd-kit](https://dndkit.com): drag field types from the palette onto any step, reorder fields, or move them between steps. Every drag also works from the keyboard (focus a handle, Space, arrow keys, Space).
 - **Undo / redo** (`Ctrl Z`, `Ctrl Shift Z`) for every change. Rapid edits to the same thing, like typing a label, collapse into a single undo step.
-- **Autosave**: forms persist to `localStorage` through a Zustand store. Only the forms are saved; undo history is per session.
+- **Autosave** to the server. The open form and its undo history live in a Zustand store for the session.
 - **Live preview** renders the real multi-step form, with validation, at desktop or phone width.
 
 All edits go through small pure functions in `src/lib/forms/operations.ts`, which the store applies to a cloned draft. That keeps the UI thin and the logic easy to unit test.
