@@ -82,7 +82,7 @@ export function ShareDialog({
               <span className="text-xs font-semibold text-foreground">Embed on your website</span>
               <CopyButton text={embed} label="Copy embed code" />
             </div>
-            <pre className="overflow-x-auto rounded-lg bg-[#061f5c] p-3 font-mono text-[12px] leading-5 text-white/85">{embed}</pre>
+            <pre className="rounded-lg bg-[#061f5c] p-3 font-mono text-[12px] leading-5 whitespace-pre-wrap text-white/85 [overflow-wrap:anywhere]">{embed}</pre>
             <p className="mt-1.5 text-xs text-muted-foreground">Paste it where the form should appear. It resizes itself and passes UTM tags through.</p>
           </div>
         </div>

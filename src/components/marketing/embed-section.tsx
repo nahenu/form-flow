@@ -98,7 +98,7 @@ function Snippet() {
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-6 text-white/85">
+      <pre className="p-5 font-mono text-[13px] leading-6 whitespace-pre-wrap text-white/85 [overflow-wrap:anywhere]">
         <code>
           <span className="text-white/65">{"<!-- where the form should appear -->"}</span>
           {"\n"}

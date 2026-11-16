@@ -91,7 +91,7 @@ const cards = [
     className: "bg-secondary text-primary lg:col-span-2",
     muted: "text-muted-foreground",
     visual: (
-      <div className="mt-8 overflow-x-auto rounded-xl bg-[#061f5c] p-4 font-mono text-[13px] text-white/80">
+      <div className="mt-8 rounded-xl bg-[#061f5c] p-4 font-mono text-[13px] text-white/80 [overflow-wrap:anywhere]">
         <span className="text-white/65">{"<script "}</span>async src=<span className="text-brand">&quot;…/embed.js&quot;</span>
         <span className="text-white/65">{"></script>"}</span>
       </div>

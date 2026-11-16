@@ -7,7 +7,16 @@ import { redirect } from "next/navigation";
 import { db, dbReady, schema } from "@/db";
 import { resetPasswordEmail, sendEmail } from "@/lib/email";
 
+// On Vercel, fall back to the project's own domains, so a missing or stale
+// BETTER_AUTH_URL can't lock everyone out with "Invalid origin".
+const https = (host?: string) => (host ? `https://${host}` : undefined);
+const vercelOrigins = [process.env.VERCEL_PROJECT_PRODUCTION_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_URL]
+  .map(https)
+  .filter((o): o is string => !!o);
+
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL || https(process.env.VERCEL_PROJECT_PRODUCTION_URL),
+  trustedOrigins: vercelOrigins,
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: { user: schema.user, session: schema.session, account: schema.account, verification: schema.verification },
