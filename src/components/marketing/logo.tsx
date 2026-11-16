@@ -1,28 +1,32 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export function LogoMark({ className }: { className?: string }) {
+export function LogoMark({ className, inverted = false }: { className?: string; inverted?: boolean }) {
   return (
-    <svg
-      viewBox="0 0 20 20"
-      fill="none"
+    <span
       aria-hidden
-      className={cn("size-5", className)}
+      className={cn(
+        "grid size-7 place-items-center rounded-[9px]",
+        inverted ? "bg-white text-primary" : "bg-primary text-white",
+        className,
+      )}
     >
-      <rect x="1.5" y="1.5" width="17" height="17" rx="3" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M5.5 7h9M5.5 10.5h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <rect x="11.5" y="12.75" width="3.5" height="3" rx="0.75" className="fill-brand" />
-    </svg>
+      <svg viewBox="0 0 16 16" fill="none" className="size-4">
+        <path d="M3 4.5h10M3 8h6.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <circle cx="11.75" cy="11.5" r="1.9" className="fill-brand" />
+        <path d="M3 11.5h4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    </span>
   );
 }
 
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, inverted = false }: { className?: string; inverted?: boolean }) {
   return (
     <Link
       href="/"
-      className={cn("inline-flex items-center gap-2 text-[0.95rem] font-medium tracking-tight", className)}
+      className={cn("inline-flex items-center gap-2 font-display text-lg !tracking-tight", className)}
     >
-      <LogoMark />
+      <LogoMark inverted={inverted} />
       FormFlow
     </Link>
   );
