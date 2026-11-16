@@ -120,7 +120,7 @@ export default function Home() {
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <Link
-                href="/dashboard"
+                href="/sign-up"
                 className="group inline-flex h-12 items-center gap-2 rounded-full bg-brand px-6 font-semibold text-primary transition-[background-color,transform] hover:bg-[#ff9fd3] active:scale-[0.98]"
               >
                 Start building, it&apos;s free

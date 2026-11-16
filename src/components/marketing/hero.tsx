@@ -64,7 +64,7 @@ export function Hero() {
 
         <Reveal delay={0.18} className="mt-9 flex flex-wrap items-center justify-center gap-3">
           <Link
-            href="/dashboard"
+            href="/sign-up"
             className="group inline-flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-[0.95rem] font-semibold text-white shadow-[0_8px_24px_-8px_rgba(9,49,141,0.6)] transition-[background-color,transform] hover:bg-[#0b3aa6] active:scale-[0.98]"
           >
             Start building, it&apos;s free

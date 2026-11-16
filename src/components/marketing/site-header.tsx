@@ -28,12 +28,18 @@ export function SiteHeader() {
             href={site.repo}
             target="_blank"
             rel="noreferrer"
-            className="hidden h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+            className="hidden h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground lg:inline-flex"
           >
             <Star className="size-3.5" /> Star on GitHub
           </a>
           <Link
-            href="/dashboard"
+            href="/sign-in"
+            className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted sm:inline-flex"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/sign-up"
             className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-[#0b3aa6]"
           >
             Start building
