@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, RotateCcw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, Check, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,13 +16,13 @@ import { cn } from "@/lib/utils";
 
 const PURPOSES = ["Leads", "Feedback", "Sign-ups", "RSVPs"];
 const CITIES = ["Bengaluru", "Mumbai", "Delhi NCR", "Hyderabad", "Pune", "Chennai"];
-const STEPS = ["Purpose", "City", "Email"];
-const DONE = STEPS.length;
+export const STEPS = ["Purpose", "City", "Email"];
+export const DONE = STEPS.length;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-export function LiveFormDemo() {
+export function useDemoForm() {
   const [step, setStep] = useState(0);
   const [purpose, setPurpose] = useState<string>();
   const [city, setCity] = useState<string>();
@@ -46,239 +45,251 @@ export function LiveFormDemo() {
     setStep((s) => s + 1);
   }
 
-  function reset() {
-    setStep(0);
-    setPurpose(undefined);
-    setCity(undefined);
-    setEmail("");
-    setError(null);
-    setTimings([]);
-  }
-
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (step === 1 && city) advance();
-    if (step === 2) {
-      if (!EMAIL_RE.test(email.trim())) {
-        setError("That doesn't look like an email address.");
-        return;
+  return {
+    step,
+    purpose,
+    city,
+    email,
+    error,
+    timings,
+    setCity,
+    setEmail,
+    choosePurpose(p: string) {
+      setPurpose(p);
+      setTimeout(advance, 260);
+    },
+    onSubmit(e: FormEvent) {
+      e.preventDefault();
+      if (step === 1 && city) advance();
+      if (step === 2) {
+        if (!EMAIL_RE.test(email.trim())) {
+          setError("That doesn't look like an email address.");
+          return;
+        }
+        setError(null);
+        advance();
       }
+    },
+    reset() {
+      setStep(0);
+      setPurpose(undefined);
+      setCity(undefined);
+      setEmail("");
       setError(null);
-      advance();
-    }
-  }
+      setTimings([]);
+    },
+  };
+}
+
+export type DemoForm = ReturnType<typeof useDemoForm>;
+
+const primaryBtn =
+  "inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-white transition-[opacity,transform] hover:opacity-90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40";
+
+export function DemoFormCard({ form }: { form: DemoForm }) {
+  const { step } = form;
 
   return (
-    <div className="w-full">
-      <div className="relative">
-        <div
-          aria-hidden
-          className="absolute inset-0 translate-x-2.5 translate-y-3 rotate-[1.4deg] rounded-lg border border-rule bg-card/70"
+    <div className="overflow-hidden rounded-xl border border-border bg-white shadow-[0_1px_2px_rgba(11,29,79,0.06),0_12px_32px_-12px_rgba(11,29,79,0.18)]">
+      <div className="h-1 bg-secondary" aria-hidden>
+        <motion.div
+          className="h-full bg-brand"
+          initial={false}
+          animate={{ width: `${(step / DONE) * 100}%` }}
+          transition={{ duration: 0.5, ease }}
         />
-        <div className="relative overflow-hidden rounded-lg border border-rule bg-card shadow-[0_1px_0_rgba(22,21,19,0.04),0_30px_60px_-30px_rgba(22,21,19,0.35)]">
-          <div className="flex items-center justify-between border-b border-rule px-6 py-3">
-            <span className="eyebrow">Lead form · live</span>
-            <span className="font-mono text-xs tabular-nums text-muted-foreground">
-              {String(Math.min(step + 1, DONE)).padStart(2, "0")} / {String(DONE).padStart(2, "0")}
-            </span>
-          </div>
-
-          <div className="flex gap-1 px-6 pt-4" aria-hidden>
-            {STEPS.map((_, i) => (
-              <div key={i} className="h-[3px] flex-1 overflow-hidden rounded-full bg-muted">
-                <motion.div
-                  className="h-full bg-foreground"
-                  initial={false}
-                  animate={{ width: step > i ? "100%" : "0%" }}
-                  transition={{ duration: 0.5, ease }}
-                />
-              </div>
-            ))}
-          </div>
-
-          <form onSubmit={onSubmit} className="min-h-[16.5rem] px-6 pb-7 pt-6" noValidate>
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, x: 18 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -18 }}
-                transition={{ duration: 0.28, ease }}
-              >
-                {step === 0 && (
-                  <fieldset>
-                    <legend className="font-display text-[2rem]">What are you collecting?</legend>
-                    <p className="mt-2 text-sm text-muted-foreground">Pick one. It moves on by itself.</p>
-                    <div className="mt-6 grid grid-cols-2 gap-2">
-                      {PURPOSES.map((p, i) => (
-                        <button
-                          key={p}
-                          type="button"
-                          aria-pressed={purpose === p}
-                          onClick={() => {
-                            setPurpose(p);
-                            setTimeout(advance, 240);
-                          }}
-                          className={cn(
-                            "group flex items-center gap-3 rounded-md border border-input px-3 py-2.5 text-left text-sm transition-colors",
-                            "hover:border-foreground/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-                            purpose === p && "border-foreground bg-foreground text-background",
-                          )}
-                        >
-                          <kbd
-                            className={cn(
-                              "grid size-5 place-items-center rounded-[3px] border border-input font-mono text-[10px] text-muted-foreground",
-                              purpose === p && "border-background/30 text-background/80",
-                            )}
-                          >
-                            {String.fromCharCode(65 + i)}
-                          </kbd>
-                          {p}
-                        </button>
-                      ))}
-                    </div>
-                  </fieldset>
-                )}
-
-                {step === 1 && (
-                  <fieldset>
-                    <legend className="font-display text-[2rem]">Which city are you in?</legend>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      A dropdown, not a six-digit pincode.{" "}
-                      <a href="#funnel" className="underline decoration-rule underline-offset-4 hover:decoration-foreground">
-                        There&apos;s a reason.
-                      </a>
-                    </p>
-                    <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                      <Select value={city} onValueChange={setCity}>
-                        <SelectTrigger className="h-10 w-full bg-background sm:flex-1" aria-label="City">
-                          <SelectValue placeholder="Choose a city" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CITIES.map((c) => (
-                            <SelectItem key={c} value={c}>
-                              {c}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button type="submit" disabled={!city} className="h-10 px-4">
-                        Next <ArrowRight />
-                      </Button>
-                    </div>
-                  </fieldset>
-                )}
-
-                {step === 2 && (
-                  <fieldset>
-                    <legend className="font-display text-[2rem]">Where should the summary go?</legend>
-                    <p className="mt-2 text-sm text-muted-foreground">Nothing is sent. This demo never leaves your browser.</p>
-                    <div className="mt-6 grid gap-2">
-                      <Label htmlFor="demo-email" className="text-xs text-muted-foreground">
-                        Work email
-                      </Label>
-                      <div className="flex flex-col gap-3 sm:flex-row">
-                        <Input
-                          id="demo-email"
-                          type="email"
-                          autoComplete="off"
-                          placeholder="you@company.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          aria-invalid={!!error}
-                          aria-describedby={error ? "demo-email-error" : undefined}
-                          className="h-10 bg-background sm:flex-1"
-                        />
-                        <Button type="submit" className="h-10 px-4">
-                          Submit
-                        </Button>
-                      </div>
-                      {error && (
-                        <p id="demo-email-error" className="text-sm text-brand">
-                          {error}
-                        </p>
-                      )}
-                    </div>
-                  </fieldset>
-                )}
-
-                {step === DONE && (
-                  <div className="flex flex-col items-start">
-                    <svg viewBox="0 0 48 48" className="size-12 text-brand" aria-hidden>
-                      <motion.circle
-                        cx="24" cy="24" r="21" fill="none" stroke="currentColor" strokeWidth="2"
-                        initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.6, ease }}
-                      />
-                      <motion.path
-                        d="M15 24.5l6 6 12-13" fill="none" stroke="currentColor" strokeWidth="2.5"
-                        strokeLinecap="round" strokeLinejoin="round"
-                        initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.4, delay: 0.45, ease }}
-                      />
-                    </svg>
-                    <h3 className="mt-5 font-display text-[2rem]">That&apos;s a finished form.</h3>
-                    <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-                      {purpose} from {city}. Three steps, no friction. Your own funnel is below.
-                    </p>
-                    <Button type="button" variant="ghost" onClick={reset} className="-ml-2.5 mt-5 h-8 text-muted-foreground">
-                      <RotateCcw /> Run it again
-                    </Button>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </form>
-        </div>
       </div>
 
-      <SessionFunnel step={step} timings={timings} />
+      <form onSubmit={form.onSubmit} className="min-h-[16rem] p-6" noValidate>
+        <p className="text-xs font-medium text-muted-foreground">
+          {step === DONE ? "Complete" : `Step ${step + 1} of ${DONE}`}
+        </p>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease }}
+            className="mt-2"
+          >
+            {step === 0 && (
+              <fieldset>
+                <legend className="font-display text-xl text-foreground">What are you collecting?</legend>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {PURPOSES.map((p, i) => (
+                    <button
+                      key={p}
+                      type="button"
+                      aria-pressed={form.purpose === p}
+                      onClick={() => form.choosePurpose(p)}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-lg border border-input px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors",
+                        "hover:border-primary/50 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+                        form.purpose === p && "border-primary bg-primary text-white hover:bg-primary",
+                      )}
+                    >
+                      <kbd
+                        className={cn(
+                          "grid size-5 place-items-center rounded border border-input bg-white font-mono text-[10px] text-muted-foreground",
+                          form.purpose === p && "border-transparent bg-brand text-primary",
+                        )}
+                      >
+                        {String.fromCharCode(65 + i)}
+                      </kbd>
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+
+            {step === 1 && (
+              <fieldset>
+                <legend className="font-display text-xl text-foreground">Which city are you in?</legend>
+                <p className="mt-1 text-sm text-muted-foreground">A dropdown, not a six-digit pincode.</p>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Select value={form.city} onValueChange={form.setCity}>
+                    <SelectTrigger className="!h-10 w-full rounded-lg sm:flex-1" aria-label="City">
+                      <SelectValue placeholder="Choose a city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CITIES.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <button type="submit" disabled={!form.city} className={primaryBtn}>
+                    Next <ArrowRight className="size-4" />
+                  </button>
+                </div>
+              </fieldset>
+            )}
+
+            {step === 2 && (
+              <fieldset>
+                <legend className="font-display text-xl text-foreground">Where should the summary go?</legend>
+                <p className="mt-1 text-sm text-muted-foreground">Nothing is sent. This demo stays in your browser.</p>
+                <div className="mt-4 grid gap-1.5">
+                  <Label htmlFor="demo-email" className="sr-only">
+                    Work email
+                  </Label>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Input
+                      id="demo-email"
+                      type="email"
+                      autoComplete="off"
+                      placeholder="you@company.com"
+                      value={form.email}
+                      onChange={(e) => form.setEmail(e.target.value)}
+                      aria-invalid={!!form.error}
+                      aria-describedby={form.error ? "demo-email-error" : undefined}
+                      className="h-10 rounded-lg sm:flex-1"
+                    />
+                    <button type="submit" className={primaryBtn}>
+                      Submit
+                    </button>
+                  </div>
+                  {form.error && (
+                    <p id="demo-email-error" className="text-sm font-medium text-destructive">
+                      {form.error}
+                    </p>
+                  )}
+                </div>
+              </fieldset>
+            )}
+
+            {step === DONE && (
+              <div className="flex flex-col items-start">
+                <motion.span
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 320, damping: 20 }}
+                  className="grid size-10 place-items-center rounded-full bg-brand text-primary"
+                >
+                  <Check className="size-5" strokeWidth={3} />
+                </motion.span>
+                <h3 className="mt-4 font-display text-xl text-foreground">Response recorded</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {form.purpose} from {form.city}. Check the funnel on the right.
+                </p>
+                <button
+                  type="button"
+                  onClick={form.reset}
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                >
+                  <RotateCcw className="size-3.5" /> Start over
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </form>
     </div>
   );
 }
 
-function SessionFunnel({ step, timings }: { step: number; timings: number[] }) {
+export function DemoFunnel({ form }: { form: DemoForm }) {
+  const { step, timings } = form;
   const rows = [...STEPS, "Submitted"];
 
   return (
-    <div className="mt-8 pl-1" aria-label="Your session funnel">
-      <div className="flex items-baseline justify-between">
-        <span className="eyebrow">Your visit, as FormFlow sees it</span>
-        <span className="font-mono text-[11px] text-muted-foreground">time on step</span>
+    <div aria-label="Live funnel for your visit">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-foreground">Live funnel</span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-[#b8326f]">
+          <span className="size-1.5 animate-pulse rounded-full bg-brand" />
+          Recording you
+        </span>
       </div>
-      <ol className="mt-3 space-y-2.5">
+      <ol className="mt-5 space-y-3.5">
         {rows.map((label, i) => {
           const done = step > i || (i === DONE && step === DONE);
           const current = step === i && i < DONE;
           return (
-            <li key={label} className="grid grid-cols-[5.5rem_1fr_3.5rem] items-center gap-3 text-xs">
-              <span className={cn("text-muted-foreground transition-colors", (done || current) && "text-foreground")}>
-                {label}
-              </span>
-              <span className="relative h-px bg-rule">
-                <motion.span
-                  className={cn("absolute inset-y-0 left-0 h-px", current ? "bg-brand" : "bg-foreground")}
+            <li key={label}>
+              <div className="flex items-center justify-between text-xs">
+                <span className={cn("font-medium text-muted-foreground", (done || current) && "text-foreground")}>
+                  {label}
+                </span>
+                <span className="font-mono tabular-nums text-muted-foreground">
+                  {current ? (
+                    <span className="font-sans font-medium text-[#b8326f]">in progress</span>
+                  ) : timings[i] !== undefined ? (
+                    `${timings[i].toFixed(1)}s`
+                  ) : done ? (
+                    "done"
+                  ) : (
+                    "—"
+                  )}
+                </span>
+              </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary">
+                <motion.div
+                  className={cn("h-full rounded-full", current ? "bg-brand" : "bg-primary")}
                   initial={false}
-                  animate={{ width: done ? "100%" : current ? "35%" : "0%" }}
+                  animate={{ width: done ? "100%" : current ? "40%" : "0%" }}
                   transition={{ duration: 0.6, ease }}
                 />
-              </span>
-              <span className="text-right font-mono tabular-nums text-muted-foreground">
-                {current ? (
-                  <span className="inline-flex items-center gap-1.5 text-brand">
-                    <span className="size-1.5 animate-pulse rounded-full bg-brand" />
-                    now
-                  </span>
-                ) : timings[i] !== undefined ? (
-                  `${timings[i].toFixed(1)}s`
-                ) : done ? (
-                  "✓"
-                ) : (
-                  "—"
-                )}
-              </span>
+              </div>
             </li>
           );
         })}
       </ol>
+      <div className="mt-6 grid grid-cols-2 gap-2 border-t border-border pt-4">
+        <div>
+          <p className="text-[11px] text-muted-foreground">Completion</p>
+          <p className="font-display text-2xl text-foreground">{step === DONE ? "100%" : `${Math.round((step / DONE) * 100)}%`}</p>
+        </div>
+        <div>
+          <p className="text-[11px] text-muted-foreground">Total time</p>
+          <p className="font-display text-2xl text-foreground">
+            {timings.length ? `${timings.reduce((a, b) => a + (b ?? 0), 0).toFixed(1)}s` : "—"}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

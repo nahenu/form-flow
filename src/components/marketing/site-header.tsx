@@ -1,41 +1,44 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Star } from "lucide-react";
+import { TextRoll } from "@/components/ui/skiper-ui/skiper58";
 import { site } from "@/lib/site";
 import { Logo } from "./logo";
 
 const nav = [
-  { href: "#funnel", label: "Why" },
+  { href: "#why", label: "Why" },
   { href: "#features", label: "Features" },
   { href: "#embed", label: "Embed" },
+  { href: "#faq", label: "FAQ" },
 ];
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-rule/70 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
-        <Logo />
-        <nav className="flex items-center gap-1 text-sm">
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-white/80 backdrop-blur-lg">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+        <Logo className="text-foreground" />
+        <nav aria-label="Main" className="hidden items-center gap-8 text-sm font-medium md:flex">
           {nav.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="hidden rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground sm:block"
-            >
-              {item.label}
+            <a key={item.href} href={item.href} className="text-muted-foreground transition-colors hover:text-foreground">
+              <TextRoll className="leading-5">{item.label}</TextRoll>
             </a>
           ))}
+        </nav>
+        <div className="flex items-center gap-1.5">
           <a
             href={site.repo}
             target="_blank"
             rel="noreferrer"
-            className="hidden rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground sm:block"
+            className="hidden h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
           >
-            GitHub
+            <Star className="size-3.5" /> Star on GitHub
           </a>
-          <Button asChild className="ml-2 h-8 rounded-md px-3.5">
-            <Link href="/dashboard">Start building</Link>
-          </Button>
-        </nav>
+          <Link
+            href="/dashboard"
+            className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-[#0b3aa6]"
+          >
+            Start building
+          </Link>
+        </div>
       </div>
     </header>
   );
