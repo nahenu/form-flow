@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FormFlow
 
-## Getting Started
+Multi-step forms with per-step drop-off analytics.
 
-First, run the development server:
+Most form tools tell you how many people submitted. FormFlow tells you **which step people quit on**, so a bad field (a six-digit pincode, an OTP that never arrives) shows up on day one.
+
+> Status: early. The landing page and live demo are done. The builder is in progress. See the [roadmap](#roadmap).
+
+## Why I'm building this
+
+At work I replaced a pincode field in our lead forms with a city dropdown. Drop-offs fell and lead volume went up noticeably. The fix was small, but finding it took far too long, because our dashboards only counted total submissions. FormFlow is the tool I wanted back then.
+
+## Stack
+
+| | |
+|---|---|
+| Framework | Next.js (App Router), React 19, TypeScript |
+| Styling | Tailwind CSS v4, shadcn/ui (Radix), Magic UI |
+| Motion | Motion (`motion/react`), with `prefers-reduced-motion` respected globally |
+| Type | Instrument Serif + Geist, via `next/font` |
+| Hosting | Vercel |
+
+## Design notes
+
+- **Paper and ink.** A warm off-white background, near-black text and a single vermillion accent, used only where something needs attention (the leaky step, the CTA word). No gradients.
+- **Product as proof.** The hero form is real: it validates, branches through steps, and records how long *you* spent on each one in the "Your visit" funnel underneath.
+- **Hairlines over cards.** Sections are separated with rules, not drop shadows, so the few elevated surfaces (the demo, the code block) stand out.
+
+## Running locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Script | |
+|---|---|
+| `npm run dev` | Dev server with Turbopack |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project layout
 
-## Learn More
+```
+src/
+  app/                  routes (landing, /dashboard)
+  components/
+    marketing/          landing page sections
+    motion/             small animation primitives
+    ui/                 shadcn/ui components
+  lib/                  site config, utils
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Roadmap
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [x] Landing page with a working multi-step demo form
+- [ ] Auth and workspaces
+- [ ] Drag-and-drop builder: fields, steps, validation, undo/redo
+- [ ] Conditional logic (branch on answers)
+- [ ] Public form pages and the embeddable `<script>` widget
+- [ ] Funnel analytics: step views, completions, time on step, first-touch source
+- [ ] AI form drafts from a one-line description
+- [ ] Tests (Vitest, Playwright) and CI
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
