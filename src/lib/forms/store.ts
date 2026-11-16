@@ -62,6 +62,8 @@ export const useFormsStore = create<FormsState>()((set, get) => ({
 
     const draft = structuredClone(current);
     recipe(draft);
+    // An edit that changed nothing (e.g. re-picking the same option) mustn't create an undo step or a save.
+    if (JSON.stringify({ t: draft.title, s: draft.steps }) === JSON.stringify({ t: current.title, s: current.steps })) return;
     draft.updatedAt = Date.now();
 
     const now = Date.now();
