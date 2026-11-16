@@ -3,7 +3,7 @@
  * given their answers so far. Everything here is pure so it can be unit tested
  * and shared by the builder, the preview and, later, the public form.
  */
-import type { Condition, ConditionOperator, Field, FieldType, Form, Step } from "./types";
+import type { Condition, ConditionOperator, Field, FieldType, FormDefinitionLike, Step } from "./types";
 
 export type Answers = Record<string, string | undefined>;
 
@@ -33,19 +33,19 @@ export function valuesFor(field: Field): string[] {
 }
 
 /** All fields in display order. */
-export function allFields(form: Form): Field[] {
+export function allFields(form: FormDefinitionLike): Field[] {
   return form.steps.flatMap((s) => s.fields);
 }
 
 /** Fields that come before `fieldId` in the form, i.e. valid rule sources for it. */
-export function earlierFields(form: Form, fieldId: string): Field[] {
+export function earlierFields(form: FormDefinitionLike, fieldId: string): Field[] {
   const fields = allFields(form);
   const index = fields.findIndex((f) => f.id === fieldId);
   return index === -1 ? [] : fields.slice(0, index);
 }
 
 /** A sensible starting rule: compare against the nearest earlier choice question, if there is one. */
-export function defaultCondition(form: Form, fieldId: string): Condition | null {
+export function defaultCondition(form: FormDefinitionLike, fieldId: string): Condition | null {
   const earlier = earlierFields(form, fieldId);
   if (earlier.length === 0) return null;
   const source = [...earlier].reverse().find((f) => valuesFor(f).length > 0) ?? earlier[earlier.length - 1];
@@ -62,7 +62,7 @@ export function conditionForSource(source: Field): Condition {
 export type ConditionProblem = "missing-source" | "source-after" | "missing-value";
 
 /** Why a field's rule can't work as written, or null if it's fine (or there is no rule). */
-export function conditionProblem(form: Form, field: Field): ConditionProblem | null {
+export function conditionProblem(form: FormDefinitionLike, field: Field): ConditionProblem | null {
   const condition = field.condition;
   if (!condition) return null;
   const fields = allFields(form);
@@ -95,7 +95,7 @@ export function evaluateCondition(condition: Condition, value: string | undefine
  * forward or at a deleted field are ignored (the field stays visible) rather
  * than hiding questions unpredictably.
  */
-export function computeVisibility(form: Form, answers: Answers): Set<string> {
+export function computeVisibility(form: FormDefinitionLike, answers: Answers): Set<string> {
   const visible = new Set<string>();
   const seen = new Set<string>();
 
@@ -114,12 +114,12 @@ export function computeVisibility(form: Form, answers: Answers): Set<string> {
 }
 
 /** Steps that have at least one visible field. Empty steps are skipped. */
-export function activeSteps(form: Form, visible: Set<string>): Step[] {
+export function activeSteps(form: FormDefinitionLike, visible: Set<string>): Step[] {
   return form.steps.filter((s) => s.fields.some((f) => visible.has(f.id)));
 }
 
 /** Short human description, e.g. `City is "Bengaluru"`. */
-export function describeCondition(form: Form, condition: Condition): string {
+export function describeCondition(form: FormDefinitionLike, condition: Condition): string {
   const source = allFields(form).find((f) => f.id === condition.fieldId);
   const name = source?.label.trim() || "a deleted question";
   const op = OPERATOR_LABELS[condition.operator];
@@ -129,6 +129,6 @@ export function describeCondition(form: Form, condition: Condition): string {
 }
 
 /** Fields whose rules use `fieldId` as their source. */
-export function dependentsOf(form: Form, fieldId: string): Field[] {
+export function dependentsOf(form: FormDefinitionLike, fieldId: string): Field[] {
   return allFields(form).filter((f) => f.condition?.fieldId === fieldId);
 }

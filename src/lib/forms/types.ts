@@ -45,3 +45,6 @@ export interface Form {
   createdAt: number;
   updatedAt: number;
 }
+
+/** Anything with steps: a full Form, a saved definition, or a published snapshot. */
+export type FormDefinitionLike = Pick<Form, "steps">;
