@@ -23,7 +23,7 @@ export default function ResultsPage({ params, searchParams }: PageProps<"/forms/
         <Header />
       </Suspense>
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:py-10">
-        <Suspense fallback={<div className="h-[40rem] animate-pulse rounded-2xl bg-white" aria-label="Loading results" />}>
+        <Suspense fallback={<div role="status" className="h-[40rem] animate-pulse rounded-2xl bg-white"><span className="sr-only">Loading results…</span></div>}>
           <Results params={params} searchParams={searchParams} />
         </Suspense>
       </main>

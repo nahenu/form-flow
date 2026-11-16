@@ -195,24 +195,13 @@ function SortableField({
       className={cn("relative", isDragging && "z-10 opacity-40")}
     >
       {incoming && <span aria-hidden className="absolute -top-[7px] inset-x-3 h-0.5 rounded-full bg-brand" />}
+      {/* A plain container with sibling controls: no buttons nested inside a button. */}
       <div
-        role="button"
-        tabIndex={0}
-        aria-pressed={selected}
-        aria-label={`Edit field: ${field.label || "Untitled question"}`}
-        onClick={onSelect}
-        onKeyDown={(e) => {
-          if (e.target !== e.currentTarget) return;
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelect();
-          }
-        }}
         className={cn(
-          "group flex gap-2 rounded-xl border bg-white p-3 pr-2 text-left outline-none transition-[border-color,box-shadow] sm:p-4 sm:pr-3",
+          "group flex gap-2 rounded-xl border bg-white p-3 pr-2 transition-[border-color,box-shadow] sm:p-4 sm:pr-3",
           selected
             ? "border-primary shadow-[0_0_0_3px_rgba(9,49,141,0.12)]"
-            : "border-border hover:border-primary/30 focus-visible:border-primary",
+            : "border-border hover:border-primary/30 has-[button:focus-visible]:border-primary",
         )}
       >
         <button
@@ -221,14 +210,15 @@ function SortableField({
           {...attributes}
           {...listeners}
           aria-label={`Reorder ${field.label || "field"}`}
-          onClick={(e) => e.stopPropagation()}
-          className="-ml-1 grid w-6 shrink-0 cursor-grab touch-none place-items-center self-stretch rounded-md text-muted-foreground/60 hover:bg-muted hover:text-foreground active:cursor-grabbing"
+          className="-ml-1 grid w-6 shrink-0 cursor-grab touch-none place-items-center self-stretch rounded-md text-muted-foreground/60 outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40 active:cursor-grabbing"
         >
           <GripVertical className="size-4" />
         </button>
-        <div className="min-w-0 flex-1">
+        {/* Named by its own visible content (WCAG label-in-name): "Edit field: Full name, Short text, …". */}
+        <button type="button" aria-pressed={selected} onClick={onSelect} className="min-w-0 flex-1 rounded-md text-left outline-none">
+          <span className="sr-only">Edit field: </span>
           <FieldPreview field={field} logic={logic} />
-        </div>
+        </button>
         <div className="flex shrink-0 flex-col gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
           <button
             type="button"

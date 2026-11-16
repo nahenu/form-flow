@@ -30,11 +30,10 @@ export function UserMenu({ user }: { user: { name: string; email: string } }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        aria-label="Account menu"
-        className="grid size-8 place-items-center rounded-full bg-primary text-xs font-semibold text-white outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-primary"
-      >
-        {initials || "?"}
+      <DropdownMenuTrigger className="grid size-8 place-items-center rounded-full bg-primary text-xs font-semibold text-white outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-primary">
+        {/* Accessible name includes the visible initials (WCAG label-in-name), e.g. "AR, account menu". */}
+        <span>{initials || "?"}</span>
+        <span className="sr-only">, account menu</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">

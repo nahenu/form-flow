@@ -11,6 +11,7 @@ import {
   useSensor,
   useSensors,
   type Active,
+  type Announcements,
   type CollisionDetection,
   type DragEndEvent,
   type DragOverEvent,
@@ -26,6 +27,7 @@ import { FormRenderer } from "@/components/forms/form-renderer";
 import { publishForm, saveForm, unpublishForm } from "@/app/actions/forms";
 import { toDefinition } from "@/lib/forms/definition";
 import { stableStringify } from "@/lib/stable-json";
+import { FIELD_TYPES } from "@/lib/forms/field-types";
 import * as ops from "@/lib/forms/operations";
 import { useCanUndoRedo, useFormsStore } from "@/lib/forms/store";
 import type { Field, FieldType, Form } from "@/lib/forms/types";
@@ -306,6 +308,32 @@ function BuilderLoaded({ form, initialPublished }: { form: Form; initialPublishe
 
   const activeField = active?.data.from === "canvas" ? ops.findField(form, active.id)?.field : null;
 
+  // Screen-reader announcements in words, not dnd-kit's internal ids.
+  const nameOf = (a: Active) => {
+    const data = a.data.current as DragData | undefined;
+    if (data?.from === "palette") return `New ${FIELD_TYPES[data.type].label.toLowerCase()} field`;
+    return ops.findField(form, String(a.id))?.field.label || "Untitled question";
+  };
+  const placeOf = (over: Over | null) => {
+    const target = resolveTarget(over);
+    const step = target && form.steps.find((s) => s.id === target.stepId);
+    return step ? `position ${target.index + 1} in ${step.title || "untitled step"}` : null;
+  };
+  const announcements: Announcements = {
+    onDragStart: ({ active }) => `Picked up ${nameOf(active)}.`,
+    onDragOver: ({ active, over }) => {
+      // Right after pickup the item is "over" its own spot: nothing new to say.
+      if (over?.id === active.id) return undefined;
+      const place = placeOf(over);
+      return place ? `${nameOf(active)} is over ${place}.` : `${nameOf(active)} is no longer over a step.`;
+    },
+    onDragEnd: ({ active, over }) => {
+      const place = placeOf(over);
+      return place ? `Dropped ${nameOf(active)} at ${place}.` : `${nameOf(active)} was dropped outside the form. Nothing changed.`;
+    },
+    onDragCancel: ({ active }) => `Moving ${nameOf(active)} was cancelled. Nothing changed.`,
+  };
+
   // ---- render --------------------------------------------------------------
 
   return (
@@ -383,6 +411,7 @@ function BuilderLoaded({ form, initialPublished }: { form: Form; initialPublishe
               screenReaderInstructions: {
                 draggable: "To pick up a field, press space or enter. Use the arrow keys to move it, space or enter to drop it, or escape to cancel.",
               },
+              announcements,
             }}
           >
             <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] lg:grid-cols-[15rem_minmax(0,1fr)_20rem]">
@@ -463,7 +492,8 @@ function sortableIndex(active: Active) {
 
 export function BuilderSkeleton() {
   return (
-    <div className="flex h-dvh flex-col bg-muted/50" aria-busy="true" aria-label="Loading builder">
+    <div className="flex h-dvh flex-col bg-muted/50" role="status" aria-busy="true">
+      <span className="sr-only">Loading the builder…</span>
       <div className="h-14 border-b border-border bg-white" />
       <div className="grid flex-1 lg:grid-cols-[15rem_1fr_20rem]">
         <div className="hidden border-r border-border bg-white lg:block" />

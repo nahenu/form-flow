@@ -207,7 +207,8 @@ function EmptyState({ onCreate, creating }: { onCreate: (t: Template) => void; c
 
 export function DashboardSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Loading your forms">
+    <div role="status" aria-busy="true">
+      <span className="sr-only">Loading your forms…</span>
       <div className="h-10 w-48 animate-pulse rounded-lg bg-white" />
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[0, 1, 2].map((i) => (
