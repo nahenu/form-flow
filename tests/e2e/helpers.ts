@@ -29,7 +29,7 @@ export async function createLeadForm(page: Page) {
 /** Waits for an edit to reach the server: "Saving…" then "Saved". */
 export async function waitForSave(page: Page) {
   await expect(page.getByText("Saving…")).toBeVisible();
-  await expect(page.getByText("Saved", { exact: true })).toBeVisible();
+  await expect(page.getByText("All changes saved", { exact: true })).toBeVisible();
 }
 
 export async function publish(page: Page) {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, BarChart3, Check, CloudOff, Eye, Loader2, PencilLine, Redo2, Send, Undo2, Workflow } from "lucide-react";
+import { ArrowLeft, BarChart3, CloudCheck, CloudOff, Eye, Loader2, PencilLine, Redo2, Send, Undo2, Workflow } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LogoMark } from "@/components/marketing/logo";
 import { cn } from "@/lib/utils";
@@ -55,26 +55,40 @@ export function BuilderHeader(props: BuilderHeaderProps) {
           placeholder="Untitled form"
           className="min-w-0 max-w-xs flex-1 truncate rounded-md bg-transparent px-2 py-1 font-display text-base text-foreground outline-none hover:bg-muted focus:bg-muted sm:text-lg"
         />
-        <span className="hidden shrink-0 items-center gap-1 text-xs text-muted-foreground md:inline-flex" aria-live="polite">
-          {saveStatus === "saved" && (
-            <>
-              <Check className="size-3.5 text-primary" /> Saved
-            </>
-          )}
-          {saveStatus === "saving" && (
-            <>
-              <Loader2 className="size-3.5 animate-spin" /> Saving…
-            </>
-          )}
+        {/* Autosave status, not a button: explained on hover/focus so nobody hunts for a "Save" button. */}
+        <div className="hidden shrink-0 items-center gap-1 text-xs md:flex">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                tabIndex={0}
+                aria-live="polite"
+                className="inline-flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              >
+                {saveStatus === "saved" && (
+                  <>
+                    <CloudCheck className="size-4 text-primary" aria-hidden /> All changes saved
+                  </>
+                )}
+                {saveStatus === "saving" && (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" aria-hidden /> Saving…
+                  </>
+                )}
+                {saveStatus === "error" && (
+                  <>
+                    <CloudOff className="size-4 text-destructive" aria-hidden /> Couldn&apos;t save
+                  </>
+                )}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>FormFlow saves automatically as you edit. There&apos;s no save button.</TooltipContent>
+          </Tooltip>
           {saveStatus === "error" && (
-            <>
-              <CloudOff className="size-3.5 text-destructive" /> Couldn&apos;t save.
-              <button type="button" onClick={props.onRetrySave} className="font-semibold text-primary hover:underline">
-                Retry
-              </button>
-            </>
+            <button type="button" onClick={props.onRetrySave} className="font-semibold text-primary hover:underline">
+              Retry
+            </button>
           )}
-        </span>
+        </div>
       </div>
 
       <div role="tablist" aria-label="Builder mode" className="flex shrink-0 rounded-lg bg-secondary p-0.5 text-sm font-medium">
