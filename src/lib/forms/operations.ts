@@ -46,9 +46,26 @@ export function updateField(form: Form, fieldId: string, patch: Partial<Omit<Fie
   if (hit) Object.assign(hit.field, patch);
 }
 
-export function removeField(form: Form, fieldId: string) {
+/** Drop rules whose source no longer exists. Returns how many were removed. */
+function clearConditionsTo(form: Form, removedIds: Set<string>): number {
+  let cleared = 0;
+  for (const step of form.steps) {
+    for (const field of step.fields) {
+      if (field.condition && removedIds.has(field.condition.fieldId)) {
+        delete field.condition;
+        cleared++;
+      }
+    }
+  }
+  return cleared;
+}
+
+/** Removes the field and any rules that depended on it. Returns the number of rules removed. */
+export function removeField(form: Form, fieldId: string): number {
   const hit = findField(form, fieldId);
-  if (hit) hit.step.fields.splice(hit.index, 1);
+  if (!hit) return 0;
+  hit.step.fields.splice(hit.index, 1);
+  return clearConditionsTo(form, new Set([fieldId]));
 }
 
 export function duplicateField(form: Form, fieldId: string): string | null {
@@ -80,9 +97,11 @@ export function renameStep(form: Form, stepId: string, title: string) {
   if (step) step.title = title;
 }
 
-export function removeStep(form: Form, stepId: string) {
-  if (form.steps.length <= 1) return;
+export function removeStep(form: Form, stepId: string): number {
+  const step = form.steps.find((s) => s.id === stepId);
+  if (!step || form.steps.length <= 1) return 0;
   form.steps = form.steps.filter((s) => s.id !== stepId);
+  return clearConditionsTo(form, new Set(step.fields.map((f) => f.id)));
 }
 
 export function countFields(form: Form) {
