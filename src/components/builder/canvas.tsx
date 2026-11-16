@@ -4,9 +4,10 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Copy, GripVertical, Plus, Trash2 } from "lucide-react";
+import { conditionProblem, describeCondition } from "@/lib/forms/logic";
 import type { Field, Form, Step } from "@/lib/forms/types";
 import { cn } from "@/lib/utils";
-import { FieldPreview } from "./field-preview";
+import { FieldPreview, type LogicBadge } from "./field-preview";
 
 export const stepZoneId = (stepId: string) => `step:${stepId}`;
 
@@ -45,7 +46,13 @@ export function Canvas(props: CanvasProps) {
   );
 }
 
+function logicBadge(form: Form, field: Field): LogicBadge | undefined {
+  if (!field.condition) return undefined;
+  return { text: describeCondition(form, field.condition), broken: conditionProblem(form, field) !== null };
+}
+
 function StepCard({
+  form,
   step,
   index,
   canRemove,
@@ -97,6 +104,7 @@ function StepCard({
             <SortableField
               key={field.id}
               field={field}
+              logic={logicBadge(form, field)}
               stepId={step.id}
               selected={selectedId === field.id}
               onSelect={() => onSelect(field.id)}
@@ -156,6 +164,7 @@ function StepDropZone({
 
 function SortableField({
   field,
+  logic,
   stepId,
   selected,
   onSelect,
@@ -163,6 +172,7 @@ function SortableField({
   onRemove,
 }: {
   field: Field;
+  logic?: LogicBadge;
   stepId: string;
   selected: boolean;
   onSelect: () => void;
@@ -217,7 +227,7 @@ function SortableField({
           <GripVertical className="size-4" />
         </button>
         <div className="min-w-0 flex-1">
-          <FieldPreview field={field} />
+          <FieldPreview field={field} logic={logic} />
         </div>
         <div className="flex shrink-0 flex-col gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
           <button

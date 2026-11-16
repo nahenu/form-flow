@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FIELD_TYPES } from "@/lib/forms/field-types";
 import { countFields } from "@/lib/forms/operations";
 import type { Field, Form } from "@/lib/forms/types";
+import { LogicEditor } from "./logic-editor";
 
 const labelClass = "mb-1.5 block text-xs font-semibold text-foreground";
 
@@ -149,6 +150,12 @@ export function Inspector({ form, field, onChange, onDuplicate, onRemove, onClos
             onCheckedChange={(required) => onChange({ required }, key(`required-${Date.now()}`))}
           />
         </div>
+
+        <LogicEditor
+          form={form}
+          field={field}
+          onChange={(condition) => onChange({ condition }, key(`condition-${Date.now()}`))}
+        />
       </div>
 
       <div className="flex gap-2 border-t border-border p-4">
@@ -204,11 +211,11 @@ function FormSummary({ form }: { form: Form }) {
             ["Redo", "Ctrl Shift Z"],
             ["Delete selected field", "Del"],
             ["Deselect", "Esc"],
-            ["Move a field (on its handle)", "Space, then ↑ ↓"],
+            ["Move a field (on its handle)", "Space ↑ ↓"],
           ].map(([action, keys]) => (
             <li key={action} className="flex items-center justify-between gap-3">
               {action}
-              <kbd className="rounded border border-border bg-white px-1.5 py-0.5 font-mono text-[10px] text-foreground">{keys}</kbd>
+              <kbd className="shrink-0 whitespace-nowrap rounded border border-border bg-white px-1.5 py-0.5 font-mono text-[10px] text-foreground">{keys}</kbd>
             </li>
           ))}
         </ul>

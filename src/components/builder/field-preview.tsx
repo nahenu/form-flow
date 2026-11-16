@@ -1,10 +1,15 @@
-import { CalendarDays, ChevronDown, Star } from "lucide-react";
+import { AlertTriangle, CalendarDays, ChevronDown, GitBranch, Star } from "lucide-react";
 import { FIELD_TYPES } from "@/lib/forms/field-types";
 import type { Field } from "@/lib/forms/types";
 import { cn } from "@/lib/utils";
 
+export interface LogicBadge {
+  text: string;
+  broken: boolean;
+}
+
 /** Read-only rendering of a field as it appears on the canvas. */
-export function FieldPreview({ field }: { field: Field }) {
+export function FieldPreview({ field, logic }: { field: Field; logic?: LogicBadge }) {
   const meta = FIELD_TYPES[field.type];
   const Icon = meta.icon;
   const box = "mt-2.5 flex h-9 items-center rounded-lg border border-border bg-muted/50 px-3 text-sm text-muted-foreground/80";
@@ -18,6 +23,20 @@ export function FieldPreview({ field }: { field: Field }) {
           <span className="rounded-full bg-brand-soft px-1.5 py-px text-[10px] font-semibold text-[#b8326f]">Required</span>
         )}
       </div>
+      {logic && (
+        <p
+          className={cn(
+            "mt-2 inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1 text-xs",
+            logic.broken ? "bg-amber-50 text-amber-900" : "bg-secondary text-primary",
+          )}
+        >
+          {logic.broken ? <AlertTriangle className="size-3.5 shrink-0" /> : <GitBranch className="size-3.5 shrink-0" />}
+          <span className="truncate">
+            {logic.broken ? "Rule needs fixing: " : "Shows if "}
+            {logic.text}
+          </span>
+        </p>
+      )}
       <p className={cn("mt-1.5 truncate font-medium text-foreground", !field.label && "text-muted-foreground italic")}>
         {field.label || "Untitled question"}
       </p>

@@ -100,8 +100,16 @@ function BuilderLoaded({ form }: { form: Form }) {
   }
 
   function removeField(id: string) {
-    edit(formId, (d) => ops.removeField(d, id));
+    let rulesCleared = 0;
+    edit(formId, (d) => {
+      rulesCleared = ops.removeField(d, id);
+    });
     if (selectedId === id) setSelectedId(null);
+    if (rulesCleared > 0) {
+      toast(`Field deleted, along with ${rulesCleared === 1 ? "1 rule that used it" : `${rulesCleared} rules that used it`}`, {
+        action: { label: "Undo", onClick: () => undo(formId) },
+      });
+    }
   }
 
   function duplicateField(id: string) {
@@ -118,12 +126,22 @@ function BuilderLoaded({ form }: { form: Form }) {
 
   function removeStep(stepId: string) {
     const step = form.steps.find((s) => s.id === stepId);
-    edit(formId, (d) => ops.removeStep(d, stepId));
+    let rulesCleared = 0;
+    edit(formId, (d) => {
+      rulesCleared = ops.removeStep(d, stepId);
+    });
     if (selectedId && step?.fields.some((f) => f.id === selectedId)) setSelectedId(null);
-    toast(`Deleted "${step?.title || "step"}"`, { action: { label: "Undo", onClick: () => undo(formId) } });
+    const extra = rulesCleared ? ` and ${rulesCleared === 1 ? "1 rule" : `${rulesCleared} rules`} that used it` : "";
+    toast(`Deleted "${step?.title || "step"}"${extra}`, { action: { label: "Undo", onClick: () => undo(formId) } });
   }
 
   // ---- keyboard shortcuts ------------------------------------------------
+
+  // The listener is registered once per dependency change; read the latest removeField through a ref.
+  const removeFieldRef = useRef(removeField);
+  useEffect(() => {
+    removeFieldRef.current = removeField;
+  });
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -139,8 +157,7 @@ function BuilderLoaded({ form }: { form: Form }) {
         redo(formId);
       } else if ((e.key === "Delete" || e.key === "Backspace") && !typing && selectedId && mode === "edit") {
         e.preventDefault();
-        edit(formId, (d) => ops.removeField(d, selectedId));
-        setSelectedId(null);
+        removeFieldRef.current(selectedId);
       } else if (e.key === "Escape" && !active) {
         setSelectedId(null);
       }
@@ -217,7 +234,7 @@ function BuilderLoaded({ form }: { form: Form }) {
         />
 
         {mode === "preview" ? (
-          <div className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto" aria-label="Form preview">
             <div className="sticky top-0 z-10 flex justify-center border-b border-border bg-white/80 py-2 backdrop-blur-sm">
               <div role="tablist" aria-label="Preview size" className="flex rounded-lg bg-secondary p-0.5 text-sm">
                 {(
@@ -247,7 +264,7 @@ function BuilderLoaded({ form }: { form: Form }) {
                 className={cn("mx-auto transition-[max-width] duration-300", device === "mobile" ? "max-w-[390px]" : "max-w-xl")}
               />
             </div>
-          </div>
+          </main>
         ) : (
           <DndContext
             sensors={sensors}
