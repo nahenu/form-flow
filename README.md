@@ -15,16 +15,17 @@ At work I replaced a pincode field in our lead forms with a city dropdown. Drop-
 | | |
 |---|---|
 | Framework | Next.js (App Router), React 19, TypeScript |
-| Styling | Tailwind CSS v4, shadcn/ui (Radix), Magic UI |
+| Styling | Tailwind CSS v4, shadcn/ui (Radix) |
+| Components | [Magic UI](https://magicui.design) (marquee, animated beam, number ticker), [Skiper UI](https://skiper-ui.com) (text roll), [Vengeance UI](https://www.vengenceui.com) (FAQ accordion, perspective grid) |
 | Motion | Motion (`motion/react`), with `prefers-reduced-motion` respected globally |
-| Type | Instrument Serif + Geist, via `next/font` |
+| Type | Inter Tight + Inter, via `next/font` |
 | Hosting | Vercel |
 
 ## Design notes
 
-- **Paper and ink.** A warm off-white background, near-black text and a single vermillion accent, used only where something needs attention (the leaky step, the CTA word). No gradients.
-- **Product as proof.** The hero form is real: it validates, branches through steps, and records how long *you* spent on each one in the "Your visit" funnel underneath.
-- **Hairlines over cards.** Sections are separated with rules, not drop shadows, so the few elevated surfaces (the demo, the code block) stand out.
+- **Three colours.** Royal blue `#09318D` carries the weight, white is the canvas, and pink `#FD91CC` is reserved for the things that need attention: the CTA, the leaky step in a funnel, the step that's in progress.
+- **Product as proof.** The hero is a working mock of the builder. The form in the middle is real (it validates and moves through its steps), and the funnel on the right records how long *you* spent on each step.
+- **Restraint.** No animated gimmicks on text. Motion is limited to entrances, progress and state changes.
 
 ## Running locally
 
