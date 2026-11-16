@@ -34,31 +34,46 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3001 (the dev and start scripts use port 3001).
 
 | Script | |
 |---|---|
 | `npm run dev` | Dev server with Turbopack |
 | `npm run build` | Production build |
+| `npm start` | Serve the production build |
 | `npm run lint` | ESLint |
+
+## The builder
+
+`/dashboard` lists your forms; `/builder/[id]` edits one.
+
+- **Drag and drop** with [dnd-kit](https://dndkit.com): drag field types from the palette onto any step, reorder fields, or move them between steps. Every drag also works from the keyboard (focus a handle, Space, arrow keys, Space).
+- **Undo / redo** (`Ctrl Z`, `Ctrl Shift Z`) for every change. Rapid edits to the same thing, like typing a label, collapse into a single undo step.
+- **Autosave**: forms persist to `localStorage` through a Zustand store. Only the forms are saved; undo history is per session.
+- **Live preview** renders the real multi-step form, with validation, at desktop or phone width.
+
+All edits go through small pure functions in `src/lib/forms/operations.ts`, which the store applies to a cloned draft. That keeps the UI thin and the logic easy to unit test.
 
 ## Project layout
 
 ```
 src/
-  app/                  routes (landing, /dashboard)
+  app/                  routes: landing, /dashboard, /builder/[id]
   components/
+    app/                dashboard
+    builder/            builder panes, canvas, inspector
+    forms/              form renderer (preview now, public pages later)
     marketing/          landing page sections
-    motion/             small animation primitives
-    ui/                 shadcn/ui components
-  lib/                  site config, utils
+    ui/                 shadcn/ui and adapted library components
+  lib/
+    forms/              types, field definitions, operations, store, templates
 ```
 
 ## Roadmap
 
 - [x] Landing page with a working multi-step demo form
-- [ ] Auth and workspaces
-- [ ] Drag-and-drop builder: fields, steps, validation, undo/redo
+- [x] Drag-and-drop builder: fields, steps, validation, undo/redo, autosave, preview
+- [ ] Auth, workspaces and database sync
 - [ ] Conditional logic (branch on answers)
 - [ ] Public form pages and the embeddable `<script>` widget
 - [ ] Funnel analytics: step views, completions, time on step, first-touch source
