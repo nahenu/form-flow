@@ -80,6 +80,17 @@ Any question can have a rule: *show this only if* an earlier answer **is**, **is
 
 Covered by unit tests in `logic.test.ts` and `operations.test.ts`.
 
+## Flow builder
+
+The **Flow** tab draws the form as a flowchart (built on [React Flow](https://reactflow.dev)): Start, one card per step, End.
+
+- **Drag the blue dot** on the right of a step to a later step, or to End, to add a **route**: *if City is Bengaluru, go to "Visit a studio"*. Click a line to change its condition or destination.
+- **Drag the bottom dot** to change where everyone else goes (the dashed "Otherwise" line).
+- Routes are checked in order and the first match wins. They **only go forward**, so a form can never loop; backward connections are refused.
+- Steps reached only through a route are laid out in a side column, and each route gets its own lane, so branches read as branches. Cards can be dragged; **Tidy up** resets the layout. Undo and redo cover everything, including moving cards.
+
+One function, `resolveFlow()` in `src/lib/forms/logic.ts`, walks the form with the respondent's answers and returns the steps they'll see and the questions that are visible. The builder preview, the public form and server-side validation all call it, so they can't disagree. Answers to steps that were skipped count as empty, and routes that point backwards or test a later question are ignored and flagged in the editor. Covered by `flow.test.ts` and `tests/e2e/flow.spec.ts`.
+
 ## Publishing, responses and tracking
 
 - **Publish snapshots.** Publishing copies the editor's version into a separate `published` column, so authors can keep editing without changing the live form. The builder shows *Publish changes* when the two differ (compared with key-sorted JSON, since Postgres jsonb reorders keys).
@@ -159,7 +170,8 @@ The end-to-end suite covers what a user actually does:
 - [x] Landing page with a working multi-step demo form
 - [x] Drag-and-drop builder: fields, steps, validation, undo/redo, autosave, preview
 - [x] Conditional logic: show questions and skip steps based on earlier answers
-- [x] Accounts (email and password) and Postgres storage
+- [x] Accounts (email and password, remember me, password reset) and Postgres storage
+- [x] Visual flow builder: drag-to-connect routes between steps
 - [x] Publishing, public form pages, responses and the embeddable `<script>` widget
 - [x] Funnel analytics: step drop-off, time on step, first-touch sources, CSV export
 - [ ] AI form drafts from a one-line description
