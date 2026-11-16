@@ -78,19 +78,39 @@ Any question can have a rule: *show this only if* an earlier answer **is**, **is
 
 Covered by unit tests in `logic.test.ts` and `operations.test.ts`.
 
+## Publishing, responses and tracking
+
+- **Publish snapshots.** Publishing copies the editor's version into a separate `published` column, so authors can keep editing without changing the live form. The builder shows *Publish changes* when the two differ (compared with key-sorted JSON, since Postgres jsonb reorders keys).
+- **Public forms** live at `/f/[id]`. Submissions go through a server action that **re-validates every answer** against the published form with the same visibility rules, drops hidden or unknown answers, and caps sizes. A hidden honeypot field filters simple bots.
+- **Funnel events** (`view`, `step_view`, `step_complete` with time on step) are batched in the browser and sent with `sendBeacon`, so they survive the tab closing. `/api/events` validates them with zod and always fails quietly: analytics must never break a form.
+- **First-touch attribution.** UTM tags and the referrer are captured on a visitor's first visit and attached to their events and response.
+
+## Embedding
+
+```html
+<div data-formflow="FORM_ID"></div>
+<script async src="https://YOUR-HOST/embed.js"></script>
+```
+
+`public/embed.js` is about 50 lines of dependency-free JavaScript. It renders the form in an iframe so the host page's CSS can't leak in, resizes the frame to fit through `postMessage` (accepting messages only from the FormFlow origin), and forwards the host page's UTM tags and referrer.
+
 ## Project layout
 
 ```
+public/embed.js         embed script
 src/
-  app/                  routes: landing, /dashboard, /builder/[id]
+  app/                  routes: landing, auth, /dashboard, /builder/[id], /f/[id], /api/*
+  app/actions/          server actions (forms, responses)
   components/
     app/                dashboard
-    builder/            builder panes, canvas, inspector
-    forms/              form renderer (preview now, public pages later)
+    builder/            builder panes, canvas, inspector, share dialog
+    forms/              form renderer (preview + public), public form
     marketing/          landing page sections
     ui/                 shadcn/ui and adapted library components
+  db/                   Drizzle schema and client (PGlite / Neon)
   lib/
-    forms/              types, field definitions, operations, store, templates
+    forms/              types, logic, validation, operations, store, server queries
+drizzle/                SQL migrations
 ```
 
 ## Roadmap
@@ -98,8 +118,8 @@ src/
 - [x] Landing page with a working multi-step demo form
 - [x] Drag-and-drop builder: fields, steps, validation, undo/redo, autosave, preview
 - [x] Conditional logic: show questions and skip steps based on earlier answers
-- [ ] Auth, workspaces and database sync
-- [ ] Public form pages and the embeddable `<script>` widget
+- [x] Accounts (email and password) and Postgres storage
+- [x] Publishing, public form pages, responses and the embeddable `<script>` widget
 - [ ] Funnel analytics: step views, completions, time on step, first-touch source
 - [ ] AI form drafts from a one-line description
 - [x] Unit tests for form logic and operations (Vitest)
