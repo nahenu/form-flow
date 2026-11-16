@@ -1,14 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Check, CloudOff, Eye, Loader2, PencilLine, Redo2, Undo2 } from "lucide-react";
+import { ArrowLeft, BarChart3, Check, CloudOff, Eye, Loader2, PencilLine, Redo2, Send, Undo2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LogoMark } from "@/components/marketing/logo";
 import { cn } from "@/lib/utils";
 
 export type BuilderMode = "edit" | "preview";
 
+export type PublishState = "draft" | "live" | "changed";
+
 interface BuilderHeaderProps {
+  formId: string;
+  publishState: PublishState;
+  publishing: boolean;
+  onPublish: () => void;
+  onShare: () => void;
   title: string;
   saveStatus: "saved" | "saving" | "error";
   onRetrySave: () => void;
@@ -104,19 +111,37 @@ export function BuilderHeader(props: BuilderHeaderProps) {
 
       <Tooltip>
         <TooltipTrigger asChild>
-          {/* span wrapper so the tooltip still works on a disabled button */}
-          <span tabIndex={0} className="hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary/30 lg:inline-flex">
-            <button
-              type="button"
-              disabled
-              className="h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-white disabled:opacity-50"
-            >
-              Publish
-            </button>
-          </span>
+          <Link
+            href={`/forms/${props.formId}/results`}
+            aria-label="Results"
+            className="hidden size-9 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground sm:grid"
+          >
+            <BarChart3 className="size-4" />
+          </Link>
         </TooltipTrigger>
-        <TooltipContent>Publishing arrives with accounts</TooltipContent>
+        <TooltipContent>Results and funnel</TooltipContent>
       </Tooltip>
+
+      {props.publishState !== "draft" && (
+        <button
+          type="button"
+          onClick={props.onShare}
+          className="hidden h-9 shrink-0 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground hover:bg-muted sm:inline-flex"
+        >
+          <span className="size-2 rounded-full bg-emerald-500" aria-hidden /> Share
+        </button>
+      )}
+      {props.publishState !== "live" && (
+        <button
+          type="button"
+          onClick={props.onPublish}
+          disabled={props.publishing}
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-semibold text-white hover:bg-[#0b3aa6] disabled:opacity-70 sm:px-4"
+        >
+          {props.publishing ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4 sm:hidden" />}
+          <span className="hidden sm:inline">{props.publishState === "changed" ? "Publish changes" : "Publish"}</span>
+        </button>
+      )}
     </header>
   );
 }

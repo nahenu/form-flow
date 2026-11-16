@@ -46,6 +46,39 @@ export async function saveForm(id: unknown, definition: unknown): Promise<Result
   return row ? { ok: true, updatedAt: row.updatedAt.getTime() } : { ok: false, error: "Form not found" };
 }
 
+/**
+ * Save the editor's current version and make it live in one update, so what
+ * gets published is exactly what the author is looking at.
+ */
+export async function publishForm(id: unknown, definition: unknown): Promise<Result<{ publishedAt: number }>> {
+  const userId = await userIdOrNull();
+  if (!userId) return { ok: false, error: "Not signed in" };
+  const parsedId = formId.safeParse(id);
+  const parsed = formDefinitionSchema.safeParse(definition);
+  if (!parsedId.success || !parsed.success) return { ok: false, error: "Invalid form" };
+  if (!parsed.data.steps.some((s) => s.fields.length > 0)) return { ok: false, error: "Add at least one question before publishing." };
+
+  const now = new Date();
+  const [row] = await db
+    .update(forms)
+    .set({ definition: parsed.data, published: parsed.data, publishedAt: now })
+    .where(and(owned(parsedId.data, userId), isNull(forms.deletedAt)))
+    .returning({ publishedAt: forms.publishedAt });
+  return row?.publishedAt ? { ok: true, publishedAt: row.publishedAt.getTime() } : { ok: false, error: "Form not found" };
+}
+
+export async function unpublishForm(id: unknown): Promise<Result> {
+  const userId = await userIdOrNull();
+  const parsedId = formId.safeParse(id);
+  if (!userId || !parsedId.success) return { ok: false, error: "Not allowed" };
+  const [row] = await db
+    .update(forms)
+    .set({ published: null, publishedAt: null })
+    .where(and(owned(parsedId.data, userId), isNull(forms.deletedAt)))
+    .returning({ id: forms.id });
+  return row ? { ok: true } : { ok: false, error: "Form not found" };
+}
+
 export async function duplicateForm(id: unknown): Promise<Result<{ id: string }>> {
   const userId = await userIdOrNull();
   const parsedId = formId.safeParse(id);

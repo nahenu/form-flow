@@ -23,13 +23,15 @@ import { toast } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { FormRenderer } from "@/components/forms/form-renderer";
-import { saveForm } from "@/app/actions/forms";
+import { publishForm, saveForm, unpublishForm } from "@/app/actions/forms";
 import { toDefinition } from "@/lib/forms/definition";
+import { stableStringify } from "@/lib/stable-json";
 import * as ops from "@/lib/forms/operations";
 import { useCanUndoRedo, useFormsStore } from "@/lib/forms/store";
 import type { Field, FieldType, Form } from "@/lib/forms/types";
 import { cn } from "@/lib/utils";
-import { BuilderHeader, type BuilderMode } from "./builder-header";
+import { BuilderHeader, type BuilderMode, type PublishState } from "./builder-header";
+import { ShareDialog } from "./share-dialog";
 import { Canvas, FieldOverlay } from "./canvas";
 import { FieldPalette, FieldStrip, PaletteOverlay } from "./field-palette";
 import { Inspector } from "./inspector";
@@ -48,9 +50,10 @@ function isTypingTarget(target: EventTarget | null) {
 }
 
 /** Loads the server copy into the editing store for as long as the builder is open. */
-export function Builder({ initial }: { initial: Form }) {
+export function Builder({ initial, published }: { initial: Form; published: string | null }) {
   const stored = useFormsStore((s) => s.forms[initial.id]);
   const initialRef = useRef(initial);
+  const [publishedSnapshot] = useState(published);
 
   useEffect(() => {
     const { load, unload } = useFormsStore.getState();
@@ -59,7 +62,43 @@ export function Builder({ initial }: { initial: Form }) {
     return () => unload(form.id);
   }, []);
 
-  return <BuilderLoaded form={stored ?? initial} />;
+  return <BuilderLoaded form={stored ?? initial} initialPublished={publishedSnapshot} />;
+}
+
+/** Publish state compares the editor's version with the live snapshot (key-order independent). */
+function usePublishing(form: Form, initialPublished: string | null) {
+  const [published, setPublished] = useState(initialPublished);
+  const [publishing, setPublishing] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const current = useMemo(() => stableStringify(toDefinition(form)), [form]);
+  const state: PublishState = published === null ? "draft" : published === current ? "live" : "changed";
+
+  async function publish() {
+    setPublishing(true);
+    const result = await publishForm(form.id, toDefinition(form)).catch(() => null);
+    setPublishing(false);
+    if (!result?.ok) {
+      toast.error(result?.error ?? "Couldn't publish. Try again.");
+      return;
+    }
+    const wasDraft = published === null;
+    setPublished(current);
+    if (wasDraft) setShareOpen(true);
+    else toast.success("Changes are live");
+  }
+
+  async function unpublish() {
+    const result = await unpublishForm(form.id).catch(() => null);
+    if (!result?.ok) {
+      toast.error("Couldn't unpublish. Try again.");
+      return;
+    }
+    setPublished(null);
+    setShareOpen(false);
+    toast("Form unpublished. The link no longer works.");
+  }
+
+  return { state, publishing, publish, unpublish, shareOpen, setShareOpen };
 }
 
 export type SaveStatus = "saved" | "saving" | "error";
@@ -106,13 +145,14 @@ function useAutosave(form: Form): { status: SaveStatus; retry: () => void } {
   };
 }
 
-function BuilderLoaded({ form }: { form: Form }) {
+function BuilderLoaded({ form, initialPublished }: { form: Form; initialPublished: string | null }) {
   const formId = form.id;
   const edit = useFormsStore((s) => s.edit);
   const undo = useFormsStore((s) => s.undo);
   const redo = useFormsStore((s) => s.redo);
   const { canUndo, canRedo } = useCanUndoRedo(formId);
   const save = useAutosave(form);
+  const publishing = usePublishing(form, initialPublished);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<BuilderMode>("edit");
@@ -269,11 +309,22 @@ function BuilderLoaded({ form }: { form: Form }) {
   return (
     <TooltipProvider delayDuration={300}>
       <Toaster position="bottom-center" />
+      <ShareDialog
+        formId={formId}
+        open={publishing.shareOpen}
+        onOpenChange={publishing.setShareOpen}
+        onUnpublish={publishing.unpublish}
+      />
       <div className="flex h-dvh flex-col bg-muted/50">
         <BuilderHeader
           title={form.title}
           saveStatus={save.status}
           onRetrySave={save.retry}
+          formId={formId}
+          publishState={publishing.state}
+          publishing={publishing.publishing}
+          onPublish={publishing.publish}
+          onShare={() => publishing.setShareOpen(true)}
           mode={mode}
           canUndo={canUndo}
           canRedo={canRedo}

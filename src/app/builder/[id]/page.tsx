@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Builder, BuilderSkeleton } from "@/components/builder/builder";
 import { requireUser } from "@/lib/auth";
 import { getOwnedForm, rowToForm } from "@/lib/forms/server";
+import { stableStringify } from "@/lib/stable-json";
 
 export const metadata: Metadata = { title: "Builder" };
 
@@ -20,5 +21,5 @@ async function BuilderRoute({ params }: { params: PageProps<"/builder/[id]">["pa
   const user = await requireUser(`/builder/${id}`);
   const row = await getOwnedForm(user.id, id);
   if (!row) notFound();
-  return <Builder initial={rowToForm(row)} />;
+  return <Builder initial={rowToForm(row)} published={row.published ? stableStringify(row.published) : null} />;
 }
