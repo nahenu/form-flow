@@ -24,7 +24,7 @@ const faqs = [
   {
     question: "Will the embed slow my site down?",
     answer:
-      "No. The script loads async after your page has rendered, and the form lives in a shadow root, so it can't touch your styles or block your content.",
+      "No. The script loads async after your page has rendered, and the form lives in its own frame, so it can't touch your styles or block your content.",
   },
   {
     question: "Can different people see different questions?",

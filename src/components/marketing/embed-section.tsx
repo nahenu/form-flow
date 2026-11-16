@@ -128,7 +128,7 @@ export function EmbedSection() {
             <ul className="mt-8 space-y-4">
               {[
                 ["Loads last", "Async, after your content. It never blocks the page from rendering."],
-                ["Stays isolated", "Rendered in a shadow root, so your CSS and FormFlow's never collide."],
+                ["Stays isolated", "Rendered in its own frame, so your CSS and FormFlow's never collide. It resizes to fit."],
                 ["Reports back", "Every step view and submit lands in your funnel within seconds."],
               ].map(([k, v]) => (
                 <li key={k} className="flex gap-3">
