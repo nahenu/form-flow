@@ -1,17 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Check, RotateCcw } from "lucide-react";
+import { AnimatePresence, m } from "motion/react";
+import { ArrowRight, Check, ChevronDown, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 const PURPOSES = ["Leads", "Feedback", "Sign-ups", "RSVPs"];
@@ -92,7 +85,7 @@ export function DemoFormCard({ form }: { form: DemoForm }) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-white shadow-[0_1px_2px_rgba(11,29,79,0.06),0_12px_32px_-12px_rgba(11,29,79,0.18)]">
       <div className="h-1 bg-secondary" aria-hidden>
-        <motion.div
+        <m.div
           className="h-full bg-brand"
           initial={false}
           animate={{ width: `${(step / DONE) * 100}%` }}
@@ -105,7 +98,7 @@ export function DemoFormCard({ form }: { form: DemoForm }) {
           {step === DONE ? "Complete" : `Step ${step + 1} of ${DONE}`}
         </p>
         <AnimatePresence mode="wait" initial={false}>
-          <motion.div
+          <m.div
             key={step}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -149,18 +142,29 @@ export function DemoFormCard({ form }: { form: DemoForm }) {
                 <legend className="font-display text-xl text-foreground">Which city are you in?</legend>
                 <p className="mt-1 text-sm text-muted-foreground">A dropdown, not a six-digit pincode.</p>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                  <Select value={form.city} onValueChange={form.setCity}>
-                    <SelectTrigger className="!h-10 w-full rounded-lg sm:flex-1" aria-label="City">
-                      <SelectValue placeholder="Choose a city" />
-                    </SelectTrigger>
-                    <SelectContent>
+                  {/* Native select: light, accessible, and opens the OS picker on phones. */}
+                  <div className="relative sm:flex-1">
+                    <select
+                      aria-label="City"
+                      value={form.city ?? ""}
+                      onChange={(e) => form.setCity(e.target.value || undefined)}
+                      className={cn(
+                        "h-10 w-full appearance-none rounded-lg border border-input bg-white pl-3 pr-9 text-sm outline-none transition-colors",
+                        "hover:border-primary/50 focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/15",
+                        form.city ? "text-foreground" : "text-muted-foreground",
+                      )}
+                    >
+                      <option value="" disabled>
+                        Choose a city
+                      </option>
                       {CITIES.map((c) => (
-                        <SelectItem key={c} value={c}>
+                        <option key={c} value={c}>
                           {c}
-                        </SelectItem>
+                        </option>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                   <button type="submit" disabled={!form.city} className={primaryBtn}>
                     Next <ArrowRight className="size-4" />
                   </button>
@@ -203,14 +207,14 @@ export function DemoFormCard({ form }: { form: DemoForm }) {
 
             {step === DONE && (
               <div className="flex flex-col items-start">
-                <motion.span
+                <m.span
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", stiffness: 320, damping: 20 }}
                   className="grid size-10 place-items-center rounded-full bg-brand text-primary"
                 >
                   <Check className="size-5" strokeWidth={3} />
-                </motion.span>
+                </m.span>
                 <h3 className="mt-4 font-display text-xl text-foreground">Response recorded</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {form.purpose} from {form.city}. Check the funnel on the right.
@@ -224,7 +228,7 @@ export function DemoFormCard({ form }: { form: DemoForm }) {
                 </button>
               </div>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </form>
     </div>
@@ -267,7 +271,7 @@ export function DemoFunnel({ form }: { form: DemoForm }) {
                 </span>
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary">
-                <motion.div
+                <m.div
                   className={cn("h-full rounded-full", current ? "bg-brand" : "bg-primary")}
                   initial={false}
                   animate={{ width: done ? "100%" : current ? "40%" : "0%" }}

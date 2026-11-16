@@ -18,7 +18,7 @@ export function ProductWindow() {
   const form = useDemoForm();
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-white/70 p-1.5 shadow-[0_60px_120px_-50px_rgba(9,49,141,0.45)] backdrop-blur-sm sm:p-2">
+    <div className="rounded-2xl border border-border/80 bg-white/80 p-1.5 shadow-[0_60px_120px_-50px_rgba(9,49,141,0.45)] sm:p-2">
       <div className="overflow-hidden rounded-xl border border-border bg-white">
         {/* Window chrome */}
         <div className="flex items-center gap-3 border-b border-border bg-muted/70 px-4 py-2.5">

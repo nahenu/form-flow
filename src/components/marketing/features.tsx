@@ -92,8 +92,8 @@ const cards = [
     muted: "text-muted-foreground",
     visual: (
       <div className="mt-8 overflow-x-auto rounded-xl bg-[#061f5c] p-4 font-mono text-[13px] text-white/80">
-        <span className="text-white/45">{"<script "}</span>async src=<span className="text-brand">&quot;…/embed.js&quot;</span>
-        <span className="text-white/45">{"></script>"}</span>
+        <span className="text-white/65">{"<script "}</span>async src=<span className="text-brand">&quot;…/embed.js&quot;</span>
+        <span className="text-white/65">{"></script>"}</span>
       </div>
     ),
   },

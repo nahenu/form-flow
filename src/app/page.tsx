@@ -111,7 +111,7 @@ export default function Home() {
               aria-hidden
               className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,0.07)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.07)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_60%_70%_at_50%_100%,black,transparent)]"
             />
-            <div aria-hidden className="absolute -bottom-56 left-1/2 -z-10 size-[34rem] -translate-x-1/2 rounded-full bg-brand/45 blur-[110px]" />
+            <div aria-hidden className="absolute -bottom-72 left-1/2 -z-10 size-[44rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(253,145,204,0.5),transparent)]" />
             <h2 className="mx-auto max-w-3xl font-display text-[clamp(2.25rem,5.5vw,4rem)]">
               Find the field that&apos;s costing you leads.
             </h2>

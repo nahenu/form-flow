@@ -2,6 +2,7 @@
 
 import { forwardRef, useRef, useState, type ReactNode } from "react";
 import { BarChart3, Check, Copy, FileSpreadsheet, Globe, Inbox, LayoutTemplate, ShoppingBag } from "lucide-react";
+import { useInView } from "motion/react";
 import { AnimatedBeam } from "@/components/ui/animated-beam";
 import { LogoMark } from "./logo";
 import { site } from "@/lib/site";
@@ -34,6 +35,7 @@ function FlowDiagram() {
   const out1 = useRef<HTMLDivElement>(null);
   const out2 = useRef<HTMLDivElement>(null);
   const out3 = useRef<HTMLDivElement>(null);
+  const inView = useInView(container, { once: true, margin: "100px" });
 
   const beam = { pathColor: "#ffffff", pathOpacity: 0.12, gradientStartColor: "#fd91cc", gradientStopColor: "#ffffff" };
 
@@ -53,12 +55,17 @@ function FlowDiagram() {
         <Node ref={out3} label="CSV export"><FileSpreadsheet className="size-6" /></Node>
       </div>
 
-      <AnimatedBeam containerRef={container} fromRef={site1} toRef={hub} curvature={-40} {...beam} />
-      <AnimatedBeam containerRef={container} fromRef={site2} toRef={hub} {...beam} delay={0.4} />
-      <AnimatedBeam containerRef={container} fromRef={site3} toRef={hub} curvature={40} {...beam} delay={0.8} />
-      <AnimatedBeam containerRef={container} fromRef={hub} toRef={out1} curvature={-40} {...beam} delay={1.2} />
-      <AnimatedBeam containerRef={container} fromRef={hub} toRef={out2} {...beam} delay={1.6} />
-      <AnimatedBeam containerRef={container} fromRef={hub} toRef={out3} curvature={40} {...beam} delay={2} />
+      {/* Beams measure layout and animate continuously, so only start them once the diagram is on screen. */}
+      {inView && (
+        <>
+          <AnimatedBeam containerRef={container} fromRef={site1} toRef={hub} curvature={-40} {...beam} />
+          <AnimatedBeam containerRef={container} fromRef={site2} toRef={hub} {...beam} delay={0.4} />
+          <AnimatedBeam containerRef={container} fromRef={site3} toRef={hub} curvature={40} {...beam} delay={0.8} />
+          <AnimatedBeam containerRef={container} fromRef={hub} toRef={out1} curvature={-40} {...beam} delay={1.2} />
+          <AnimatedBeam containerRef={container} fromRef={hub} toRef={out2} {...beam} delay={1.6} />
+          <AnimatedBeam containerRef={container} fromRef={hub} toRef={out3} curvature={40} {...beam} delay={2} />
+        </>
+      )}
     </div>
   );
 }
@@ -81,7 +88,7 @@ function Snippet() {
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#061f5c]">
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
-        <span className="font-mono text-[11px] text-white/50">index.html</span>
+        <span className="font-mono text-[11px] text-white/65">index.html</span>
         <button
           onClick={copy}
           className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-white/20"
@@ -93,13 +100,13 @@ function Snippet() {
       </div>
       <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-6 text-white/85">
         <code>
-          <span className="text-white/40">{"<!-- where the form should appear -->"}</span>
+          <span className="text-white/65">{"<!-- where the form should appear -->"}</span>
           {"\n"}
-          <span className="text-white/50">{"<div "}</span>data-formflow=<span className="text-brand">&quot;f_8k2m1q&quot;</span>
-          <span className="text-white/50">{"></div>"}</span>
+          <span className="text-white/65">{"<div "}</span>data-formflow=<span className="text-brand">&quot;f_8k2m1q&quot;</span>
+          <span className="text-white/65">{"></div>"}</span>
           {"\n"}
-          <span className="text-white/50">{"<script "}</span>async src=<span className="text-brand">&quot;{src}&quot;</span>
-          <span className="text-white/50">{"></script>"}</span>
+          <span className="text-white/65">{"<script "}</span>async src=<span className="text-brand">&quot;{src}&quot;</span>
+          <span className="text-white/65">{"></script>"}</span>
         </code>
       </pre>
     </div>
