@@ -42,6 +42,7 @@ Open http://localhost:3001 (the dev and start scripts use port 3001).
 | `npm run build` | Production build |
 | `npm start` | Serve the production build |
 | `npm run lint` | ESLint |
+| `npm test` | Unit tests (Vitest) |
 
 ## The builder
 
@@ -53,6 +54,17 @@ Open http://localhost:3001 (the dev and start scripts use port 3001).
 - **Live preview** renders the real multi-step form, with validation, at desktop or phone width.
 
 All edits go through small pure functions in `src/lib/forms/operations.ts`, which the store applies to a cloned draft. That keeps the UI thin and the logic easy to unit test.
+
+## Conditional logic
+
+Any question can have a rule: *show this only if* an earlier answer **is**, **is not**, **is answered** or **is empty**. The engine lives in `src/lib/forms/logic.ts` and is pure, so the builder, the preview and (later) public forms share it.
+
+- **Steps branch automatically.** A step whose questions are all hidden is skipped, so "Bengaluru → visit a studio, everyone else → video call" needs no special step logic.
+- **Chains collapse.** Answers to hidden questions count as empty, so if A hides B, anything that depends on B hides too.
+- **Rules only look backwards.** The editor only offers earlier questions. If a question is dragged below the one that depends on it, the rule is ignored at runtime (the question stays visible rather than vanishing) and the builder flags it.
+- **No dangling rules.** Deleting a question (or its step) removes rules that used it, and the toast offers Undo.
+
+Covered by unit tests in `logic.test.ts` and `operations.test.ts`.
 
 ## Project layout
 
@@ -73,12 +85,13 @@ src/
 
 - [x] Landing page with a working multi-step demo form
 - [x] Drag-and-drop builder: fields, steps, validation, undo/redo, autosave, preview
+- [x] Conditional logic: show questions and skip steps based on earlier answers
 - [ ] Auth, workspaces and database sync
-- [ ] Conditional logic (branch on answers)
 - [ ] Public form pages and the embeddable `<script>` widget
 - [ ] Funnel analytics: step views, completions, time on step, first-touch source
 - [ ] AI form drafts from a one-line description
-- [ ] Tests (Vitest, Playwright) and CI
+- [x] Unit tests for form logic and operations (Vitest)
+- [ ] End-to-end tests (Playwright) and CI
 
 ## License
 
