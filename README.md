@@ -1,10 +1,12 @@
 # FormFlow
 
+[![CI](https://github.com/nahenu/form-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/nahenu/form-flow/actions/workflows/ci.yml)
+
 Multi-step forms with per-step drop-off analytics.
 
 Most form tools tell you how many people submitted. FormFlow tells you **which step people quit on**, so a bad field (a six-digit pincode, an OTP that never arrives) shows up on day one.
 
-> Status: early. The landing page and live demo are done. The builder is in progress. See the [roadmap](#roadmap).
+Build a form with drag and drop and conditional logic, publish it as a link or embed it on any site, and watch the funnel: how many people reached each step, where they left, how long they took, and which campaign brought them.
 
 ## Why I'm building this
 
@@ -132,6 +134,26 @@ src/
 drizzle/                SQL migrations
 ```
 
+## Testing
+
+| | |
+|---|---|
+| `npm test` | **Unit tests** (Vitest) for the pure logic: conditional visibility, submission validation, edit operations, key-order-independent JSON. |
+| `npm run test:e2e` | **End-to-end tests** (Playwright) against a production build on port 3100, with a throwaway database that is wiped each run. |
+| `npm run test:e2e:ui` | The same, in Playwright's interactive UI. |
+
+The end-to-end suite covers what a user actually does:
+
+- **Auth**: protected routes redirect and come back, sign up, sign out, a wrong password, and a regression check that credentials never reach the URL.
+- **Builder**: autosave survives a reload, grouped undo/redo, adding from the palette, keyboard-only reordering (waiting on the screen-reader announcements, the way a user would), conditional logic in the preview.
+- **Publishing**: a respondent from an Instagram campaign submits; the owner sees the response, its source and the CSV export; edits stay private until republished; unpublishing kills the link.
+- **Security**: another account gets a 404 for your builder, results and export; signed-out export is a 401; the events endpoint rejects bad input.
+- **Embed**: the script runs on a separate origin, forwards UTM tags and resizes the frame.
+- **Accessibility**: axe finds no serious or critical WCAG 2.1 A/AA issues on the landing, sign-in, dashboard, builder and public form.
+- **Mobile**: no horizontal scroll, and the builder's field strip and settings sheet work on a Pixel 7.
+
+[GitHub Actions](.github/workflows/ci.yml) runs lint, unit tests and the full end-to-end suite on every push and pull request.
+
 ## Roadmap
 
 - [x] Landing page with a working multi-step demo form
@@ -142,7 +164,7 @@ drizzle/                SQL migrations
 - [x] Funnel analytics: step drop-off, time on step, first-touch sources, CSV export
 - [ ] AI form drafts from a one-line description
 - [x] Unit tests for form logic and operations (Vitest)
-- [ ] End-to-end tests (Playwright) and CI
+- [x] End-to-end and accessibility tests (Playwright, axe) and CI
 
 ## License
 
