@@ -12,7 +12,7 @@ import * as schema from "./schema";
 /**
  * One database API, two backends:
  * - DATABASE_URL set (production, e.g. Neon): serverless Postgres over HTTP.
- * - Not set (local dev): PGlite, a real Postgres compiled to WASM, stored in
+ * - Not set, or PGLITE_DIR set (local dev, tests): PGlite, a real Postgres compiled to WASM, stored in
  *   ./.data. No install, no account, and migrations run automatically.
  */
 export type Database = PgDatabase<PgQueryResultHKT, typeof schema>;
@@ -25,7 +25,9 @@ interface DbState {
 const globalForDb = globalThis as unknown as { __formflowDb?: DbState };
 
 function create(): DbState {
-  const url = process.env.DATABASE_URL;
+  // An explicit PGLITE_DIR (the end-to-end test server) always wins, so tests can
+  // never write to the real database even when DATABASE_URL is in an env file.
+  const url = process.env.PGLITE_DIR ? undefined : process.env.DATABASE_URL;
   if (url) {
     // Production migrations run as a deploy step (npm run db:migrate).
     return { db: drizzleNeon(neon(url), { schema }) as unknown as Database, ready: Promise.resolve() };

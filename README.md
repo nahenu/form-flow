@@ -41,6 +41,12 @@ Open http://localhost:3001 (the dev and start scripts use port 3001).
 
 **No database setup needed locally.** Without `DATABASE_URL`, FormFlow uses [PGlite](https://pglite.dev), a real Postgres compiled to WebAssembly, stored in `./.data` and migrated automatically on first request. In production, set `DATABASE_URL` to any Postgres (e.g. Neon) and run `npm run db:migrate`. The same Drizzle schema and queries run on both.
 
+### Deploying to Vercel
+
+1. Create a Neon project (region: Singapore) and copy its pooled connection string.
+2. Import the repo in Vercel and set `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL` (the deployment's URL). Optionally `RESEND_API_KEY` for password-reset emails.
+3. Deploy. Vercel runs `vercel-build`, which applies migrations before `next build`. `vercel.json` pins functions to `sin1`, next to the database.
+
 | Script | |
 |---|---|
 | `npm run dev` | Dev server with Turbopack |
@@ -49,7 +55,7 @@ Open http://localhost:3001 (the dev and start scripts use port 3001).
 | `npm run lint` | ESLint |
 | `npm test` | Unit tests (Vitest) |
 | `npm run db:generate` | Generate a SQL migration after changing `src/db/schema.ts` |
-| `npm run db:migrate` | Apply migrations to `DATABASE_URL` |
+| `npm run db:migrate` | Apply migrations to `DATABASE_URL` (env or `.env.production.local`) |
 
 ## Accounts and data
 
