@@ -85,6 +85,25 @@ Covered by unit tests in `logic.test.ts` and `operations.test.ts`.
 - **Funnel events** (`view`, `step_view`, `step_complete` with time on step) are batched in the browser and sent with `sendBeacon`, so they survive the tab closing. `/api/events` validates them with zod and always fails quietly: analytics must never break a form.
 - **First-touch attribution.** UTM tags and the referrer are captured on a visitor's first visit and attached to their events and response.
 
+## Results and funnel analytics
+
+`/forms/[id]/results` shows, for 7 days, 30 days or all time:
+
+- **KPIs**: completion rate (the headline), unique visitors, how many finished step 1, submissions, median time to submit.
+- **Funnel**: one row per step with how many unique visitors reached it, how many left there, and the median time spent. The step that loses the largest share of the people who saw it is called out ("Biggest drop-off"). Drop-off is measured per step (saw it, didn't finish it), so steps that some people skip because of conditional logic don't look like losses.
+- **Submissions per day** and **first-touch sources** with conversion per source.
+- **Responses table** and **CSV export**. Export is ownership-checked, UTF-8 with a BOM for Excel, and guarded against CSV formula injection.
+
+Charts are plain HTML and CSS: server-rendered, no chart library, tooltips on hover and keyboard focus. They follow a validated palette. Blue carries the data. Pink only emphasises the one step that matters, and it always comes with a text label and icon, because pink on white is below 3:1 contrast.
+
+### Demo data
+
+In development, `POST /api/dev/seed` creates `demo@formflow.dev` / `formflow-demo` with a published lead form and four weeks of simulated traffic (about 560 visitors). The generator is seeded, so the numbers are the same every run. In production the route only answers with the `x-seed-secret` header matching `SEED_SECRET`.
+
+```bash
+curl -X POST http://localhost:3001/api/dev/seed
+```
+
 ## Embedding
 
 ```html
@@ -120,7 +139,7 @@ drizzle/                SQL migrations
 - [x] Conditional logic: show questions and skip steps based on earlier answers
 - [x] Accounts (email and password) and Postgres storage
 - [x] Publishing, public form pages, responses and the embeddable `<script>` widget
-- [ ] Funnel analytics: step views, completions, time on step, first-touch source
+- [x] Funnel analytics: step drop-off, time on step, first-touch sources, CSV export
 - [ ] AI form drafts from a one-line description
 - [x] Unit tests for form logic and operations (Vitest)
 - [ ] End-to-end tests (Playwright) and CI
