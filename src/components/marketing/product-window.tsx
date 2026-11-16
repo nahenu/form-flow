@@ -89,7 +89,7 @@ export function ProductWindow() {
           </aside>
 
           {/* Center: canvas */}
-          <div className="relative bg-muted/60 bg-[radial-gradient(#d5ddef_1px,transparent_1px)] p-4 text-left [background-size:18px_18px] sm:p-10">
+          <div className="relative bg-muted/60 bg-[radial-gradient(#d5ddef_1px,transparent_1px)] p-3 text-left [background-size:18px_18px] sm:p-10">
             <div className="mx-auto max-w-md">
               <DemoFormCard form={form} />
               <p className="mt-3 text-center text-xs text-muted-foreground">This form works. Go ahead and fill it in.</p>

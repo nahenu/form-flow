@@ -11,14 +11,14 @@ export function SiteFooter() {
             Forms with step-by-step analytics. Designed and built by {site.author}.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-x-16 gap-y-2.5 text-sm">
+        <div className="grid grid-cols-2 gap-x-16 gap-y-0.5 text-sm">
           <span className="mb-1 font-semibold text-foreground">Product</span>
           <span className="mb-1 font-semibold text-foreground">Project</span>
-          <a href="#features" className="text-muted-foreground hover:text-foreground">Features</a>
-          <a href={site.repo} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground">Source code</a>
-          <a href="#embed" className="text-muted-foreground hover:text-foreground">Embed</a>
-          <a href={`${site.repo}#roadmap`} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground">Roadmap</a>
-          <a href="#faq" className="text-muted-foreground hover:text-foreground">FAQ</a>
+          <a href="#features" className="py-1.5 text-muted-foreground hover:text-foreground">Features</a>
+          <a href={site.repo} target="_blank" rel="noreferrer" className="py-1.5 text-muted-foreground hover:text-foreground">Source code</a>
+          <a href="#embed" className="py-1.5 text-muted-foreground hover:text-foreground">Embed</a>
+          <a href={`${site.repo}#roadmap`} target="_blank" rel="noreferrer" className="py-1.5 text-muted-foreground hover:text-foreground">Roadmap</a>
+          <a href="#faq" className="py-1.5 text-muted-foreground hover:text-foreground">FAQ</a>
         </div>
       </div>
       <div className="border-t border-border">

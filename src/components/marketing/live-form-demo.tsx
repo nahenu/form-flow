@@ -100,7 +100,7 @@ export function DemoFormCard({ form }: { form: DemoForm }) {
         />
       </div>
 
-      <form onSubmit={form.onSubmit} className="min-h-[16rem] p-6" noValidate>
+      <form onSubmit={form.onSubmit} className="min-h-[16rem] p-5 sm:p-6" noValidate>
         <p className="text-xs font-medium text-muted-foreground">
           {step === DONE ? "Complete" : `Step ${step + 1} of ${DONE}`}
         </p>
@@ -116,7 +116,7 @@ export function DemoFormCard({ form }: { form: DemoForm }) {
             {step === 0 && (
               <fieldset>
                 <legend className="font-display text-xl text-foreground">What are you collecting?</legend>
-                <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="mt-4 grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
                   {PURPOSES.map((p, i) => (
                     <button
                       key={p}

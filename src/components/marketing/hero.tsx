@@ -24,10 +24,11 @@ export function Hero() {
         <Reveal>
           <a
             href="#why"
-            className="group inline-flex items-center gap-2 rounded-full border border-border bg-white py-1 pl-1 pr-3 text-sm text-muted-foreground shadow-sm transition-colors hover:border-primary/30"
+            className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-border bg-white py-1 pl-1 pr-3 text-[13px] text-muted-foreground shadow-sm transition-colors hover:border-primary/30 sm:text-sm"
           >
             <span className="rounded-full bg-brand-soft px-2 py-0.5 text-xs font-semibold text-[#b8326f]">New</span>
-            Step-by-step drop-off analytics
+            <span className="min-[360px]:hidden">Drop-off analytics</span>
+            <span className="hidden min-[360px]:inline">Step-by-step drop-off analytics</span>
             <ChevronRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </a>
         </Reveal>
