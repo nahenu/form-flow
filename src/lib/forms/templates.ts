@@ -10,37 +10,44 @@ function leadSteps(): Step[] {
     required: true,
   });
 
+  const studio = createStep("Visit a studio", [
+    createField("multiple_choice", {
+      label: "Which studio is closest to you?",
+      options: ["Indiranagar", "HSR Layout", "Whitefield"],
+      required: true,
+      helpText: "Our designers will meet you there with material samples.",
+    }),
+  ]);
+  const done = createStep("Almost done", [
+    createField("email", { label: "Email address", required: true }),
+    createField("date", { label: "When do you want to move in?" }),
+  ]);
+  const home = createStep("Your home", [
+    city,
+    createField("multiple_choice", {
+      label: "What's the property type?",
+      options: ["1 BHK", "2 BHK", "3 BHK", "4+ BHK / Villa"],
+      required: true,
+    }),
+    // A question-level rule: shown on the same step, only outside Bengaluru.
+    createField("multiple_choice", {
+      label: "Would a video consultation work for you?",
+      options: ["Yes, a video call is great", "No, I'd rather meet in person"],
+      condition: { fieldId: city.id, operator: "not_equals", value: "Bengaluru" },
+    }),
+  ]);
+  // A step-level route: Bengaluru goes to the studio step, everyone else skips it.
+  home.routes = [{ id: newId(), condition: { fieldId: city.id, operator: "equals", value: "Bengaluru" }, to: studio.id }];
+  home.next = done.id;
+
   return [
     createStep("About you", [
       createField("short_text", { label: "Full name", placeholder: "Your name", required: true }),
       createField("phone", { label: "Phone number", required: true, helpText: "We'll send a one-time code to verify it." }),
     ]),
-    createStep("Your home", [
-      city,
-      createField("multiple_choice", {
-        label: "What's the property type?",
-        options: ["1 BHK", "2 BHK", "3 BHK", "4+ BHK / Villa"],
-        required: true,
-      }),
-      createField("multiple_choice", {
-        label: "Would a video consultation work for you?",
-        options: ["Yes, a video call is great", "No, I'd rather meet in person"],
-        condition: { fieldId: city.id, operator: "not_equals", value: "Bengaluru" },
-      }),
-    ]),
-    createStep("Visit a studio", [
-      createField("multiple_choice", {
-        label: "Which studio is closest to you?",
-        options: ["Indiranagar", "HSR Layout", "Whitefield"],
-        required: true,
-        helpText: "Our designers will meet you there with material samples.",
-        condition: { fieldId: city.id, operator: "equals", value: "Bengaluru" },
-      }),
-    ]),
-    createStep("Almost done", [
-      createField("email", { label: "Email address", required: true }),
-      createField("date", { label: "When do you want to move in?" }),
-    ]),
+    home,
+    studio,
+    done,
   ];
 }
 

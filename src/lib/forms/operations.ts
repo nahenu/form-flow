@@ -3,7 +3,7 @@
  * these, so they can mutate freely and stay trivially testable.
  */
 import { FIELD_TYPES } from "./field-types";
-import type { Field, FieldType, Form, Step } from "./types";
+import type { Condition, Field, FieldType, Form, Route, Step, StepTarget } from "./types";
 
 export const newId = () => crypto.randomUUID().slice(0, 8);
 
@@ -46,7 +46,7 @@ export function updateField(form: Form, fieldId: string, patch: Partial<Omit<Fie
   if (hit) Object.assign(hit.field, patch);
 }
 
-/** Drop rules whose source no longer exists. Returns how many were removed. */
+/** Drop field rules and routes whose source no longer exists. Returns how many were removed. */
 function clearConditionsTo(form: Form, removedIds: Set<string>): number {
   let cleared = 0;
   for (const step of form.steps) {
@@ -55,6 +55,11 @@ function clearConditionsTo(form: Form, removedIds: Set<string>): number {
         delete field.condition;
         cleared++;
       }
+    }
+    if (step.routes) {
+      const kept = step.routes.filter((r) => !removedIds.has(r.condition.fieldId));
+      cleared += step.routes.length - kept.length;
+      step.routes = kept;
     }
   }
   return cleared;
@@ -97,11 +102,63 @@ export function renameStep(form: Form, stepId: string, title: string) {
   if (step) step.title = title;
 }
 
+/**
+ * Removes the step, rules and routes that tested its fields, and routes that
+ * led to it. A default path that led to it falls back to "next in order".
+ */
 export function removeStep(form: Form, stepId: string): number {
   const step = form.steps.find((s) => s.id === stepId);
   if (!step || form.steps.length <= 1) return 0;
   form.steps = form.steps.filter((s) => s.id !== stepId);
-  return clearConditionsTo(form, new Set(step.fields.map((f) => f.id)));
+  let cleared = clearConditionsTo(form, new Set(step.fields.map((f) => f.id)));
+  for (const s of form.steps) {
+    if (s.next === stepId) delete s.next;
+    if (s.routes) {
+      const kept = s.routes.filter((r) => r.to !== stepId);
+      cleared += s.routes.length - kept.length;
+      s.routes = kept;
+    }
+  }
+  return cleared;
+}
+
+// ---- flow: routes, default paths and card positions ------------------------
+
+export function addRoute(form: Form, stepId: string, condition: Condition, to: StepTarget): string | null {
+  const step = form.steps.find((s) => s.id === stepId);
+  if (!step) return null;
+  const route: Route = { id: newId(), condition, to };
+  (step.routes ??= []).push(route);
+  return route.id;
+}
+
+export function updateRoute(form: Form, stepId: string, routeId: string, patch: Partial<Omit<Route, "id">>) {
+  const route = form.steps.find((s) => s.id === stepId)?.routes?.find((r) => r.id === routeId);
+  if (route) Object.assign(route, patch);
+}
+
+export function removeRoute(form: Form, stepId: string, routeId: string) {
+  const step = form.steps.find((s) => s.id === stepId);
+  if (step?.routes) step.routes = step.routes.filter((r) => r.id !== routeId);
+}
+
+/** Set where a step goes when no route matches; `undefined` means "next step in order". */
+export function setStepNext(form: Form, stepId: string, to: StepTarget | undefined) {
+  const step = form.steps.find((s) => s.id === stepId);
+  if (!step) return;
+  if (to === undefined) delete step.next;
+  else step.next = to;
+}
+
+export function setStepPositions(form: Form, positions: Record<string, { x: number; y: number }>) {
+  for (const step of form.steps) {
+    const p = positions[step.id];
+    if (p) step.position = { x: Math.round(p.x), y: Math.round(p.y) };
+  }
+}
+
+export function clearStepPositions(form: Form) {
+  for (const step of form.steps) delete step.position;
 }
 
 export function countFields(form: Form) {

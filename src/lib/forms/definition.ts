@@ -29,10 +29,19 @@ const fieldSchema = z.object({
   condition: conditionSchema.optional(),
 });
 
+const routeSchema = z.object({
+  id: text(64).min(1),
+  condition: conditionSchema,
+  to: text(64).min(1),
+});
+
 const stepSchema = z.object({
   id: text(64).min(1),
   title: text(200),
   fields: z.array(fieldSchema).max(MAX_FIELDS_PER_STEP),
+  routes: z.array(routeSchema).max(20).optional(),
+  next: text(64).min(1).optional(),
+  position: z.object({ x: z.number().finite().min(-1e5).max(1e5), y: z.number().finite().min(-1e5).max(1e5) }).optional(),
 });
 
 export const formDefinitionSchema = z.object({

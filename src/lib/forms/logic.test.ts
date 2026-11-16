@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  activeSteps,
+  resolveFlow,
   computeVisibility,
   conditionProblem,
   defaultCondition,
@@ -44,7 +44,7 @@ describe("computeVisibility", () => {
 
   it("skips a step whose fields are all hidden", () => {
     const form = leadForm();
-    const ids = (answers: Record<string, string>) => activeSteps(form, computeVisibility(form, answers)).map((s) => s.id);
+    const ids = (answers: Record<string, string>) => resolveFlow(form, answers).path.map((s) => s.id);
     expect(ids({ city: "Mumbai" })).toEqual(["s1", "s3"]);
     expect(ids({ city: "Bengaluru" })).toEqual(["s1", "s2", "s3"]);
   });

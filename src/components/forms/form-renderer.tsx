@@ -5,7 +5,7 @@ import { AnimatePresence, m } from "motion/react";
 import { ArrowLeft, ArrowRight, Check, ChevronDown, Loader2, RotateCcw, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { activeSteps, computeVisibility } from "@/lib/forms/logic";
+import { resolveFlow } from "@/lib/forms/logic";
 import type { Field, FormDefinitionLike } from "@/lib/forms/types";
 import { validateField } from "@/lib/forms/validation";
 import { cn } from "@/lib/utils";
@@ -47,8 +47,8 @@ export function FormRenderer({ form, className, onSubmit: submit, tracker }: For
   const [submitError, setSubmitError] = useState<string | null>(null);
   const stepEnteredAt = useRef(0);
 
-  const visible = computeVisibility(form, answers);
-  const steps = activeSteps(form, visible);
+  // The path follows routes and is recomputed as answers change, so later steps update live.
+  const { path: steps, visible } = resolveFlow(form, answers);
   // Track the step by id: the list of active steps can change as answers change.
   const found = steps.findIndex((s) => s.id === currentStepId);
   const stepIndex = found === -1 ? 0 : found;
