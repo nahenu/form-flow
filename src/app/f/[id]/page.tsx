@@ -8,11 +8,17 @@ import { LogoMark } from "@/components/marketing/logo";
 import { getPublishedForm } from "@/lib/forms/public";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Form",
-  // Forms often collect personal details; keep them out of search results.
-  robots: { index: false, follow: false },
-};
+/** The form's own title is the tab title (streams in with the rest of the request-time content). */
+export async function generateMetadata({ params }: PageProps<"/f/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  await connection();
+  const form = await getPublishedForm(id);
+  return {
+    title: form?.title || "Form",
+    // Forms often collect personal details; keep them out of search results.
+    robots: { index: false, follow: false },
+  };
+}
 
 export default function PublicFormPage({ params, searchParams }: PageProps<"/f/[id]">) {
   return (

@@ -60,7 +60,6 @@ export function PublicForm({ form, embedded }: { form: PublishedForm; embedded: 
 
   return (
     <div ref={container}>
-      <title>{`${form.title || "Form"} · FormFlow`}</title>
       {/* Honeypot for bots: hidden from people and from assistive tech. */}
       <input ref={honeypot} type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="absolute -left-[9999px] h-0 w-0 opacity-0" />
       <FormRenderer form={form} onSubmit={onSubmit} tracker={stepTracker} className={embedded ? "shadow-none" : undefined} />
