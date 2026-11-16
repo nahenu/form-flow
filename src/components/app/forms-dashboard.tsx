@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Copy, FileText, LayoutTemplate, Loader2, MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { BarChart3, Copy, FileText, LayoutTemplate, Loader2, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { createForm, deleteForm, duplicateForm, restoreForm } from "@/app/actions/forms";
 import {
@@ -138,6 +138,11 @@ function FormCard({ form, onDuplicate, onDelete }: { form: FormSummary; onDuplic
               <MoreHorizontal className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href={`/forms/${form.id}/results`}>
+                  <BarChart3 /> Results
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={onDuplicate}>
                 <Copy /> Duplicate
               </DropdownMenuItem>
@@ -157,9 +162,14 @@ function FormCard({ form, onDuplicate, onDelete }: { form: FormSummary; onDuplic
       </p>
       <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
         <span>Edited {timeAgo(form.updatedAt)}</span>
-        <span className="font-medium text-foreground">
+        {/* Sits above the card-wide link, so it opens results instead of the builder. */}
+        <Link
+          href={`/forms/${form.id}/results`}
+          className="relative z-10 inline-flex items-center gap-1 rounded-md px-1.5 py-1 font-medium text-foreground hover:bg-secondary hover:text-primary"
+        >
+          <BarChart3 className="size-3.5" />
           {form.responseCount} {form.responseCount === 1 ? "response" : "responses"}
-        </span>
+        </Link>
       </div>
     </li>
   );
