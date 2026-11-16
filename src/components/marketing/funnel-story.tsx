@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { motion, useInView } from "motion/react";
+import { m, useInView } from "motion/react";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +50,18 @@ export function FunnelChart() {
           </div>
         </div>
 
-        <div role="tablist" aria-label="Funnel version" className="relative flex rounded-full bg-secondary p-1 text-sm font-semibold">
+        <div
+          role="tablist"
+          aria-label="Funnel version"
+          className="relative isolate grid grid-cols-2 rounded-full bg-secondary p-1 text-sm font-semibold"
+        >
+          <span
+            aria-hidden
+            className={cn(
+              "absolute inset-y-1 left-1 -z-10 w-[calc(50%-0.25rem)] rounded-full bg-primary transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+              view === "after" && "translate-x-full",
+            )}
+          />
           {(["before", "after"] as const).map((v) => (
             <button
               key={v}
@@ -58,17 +69,10 @@ export function FunnelChart() {
               aria-selected={view === v}
               onClick={() => setView(v)}
               className={cn(
-                "relative z-10 rounded-full px-4 py-1.5 capitalize transition-colors",
-                view === v ? "text-white" : "text-primary/60 hover:text-primary",
+                "rounded-full px-4 py-1.5 capitalize transition-colors",
+                view === v ? "text-white" : "text-primary/70 hover:text-primary",
               )}
             >
-              {view === v && (
-                <motion.span
-                  layoutId="funnel-tab"
-                  className="absolute inset-0 -z-10 rounded-full bg-primary"
-                  transition={{ duration: 0.35, ease }}
-                />
-              )}
               {v}
             </button>
           ))}
@@ -89,7 +93,7 @@ export function FunnelChart() {
                 {row.label}
               </span>
               <span className="relative h-8 overflow-hidden rounded-lg bg-secondary">
-                <motion.span
+                <m.span
                   className={cn("absolute inset-y-0 left-0 rounded-lg", highlight ? "bg-brand" : "bg-primary")}
                   initial={{ width: 0 }}
                   animate={{ width: inView ? `${row.value}%` : 0 }}

@@ -1,14 +1,12 @@
-"use client";
-
-import { motion } from "motion/react";
+import type { CSSProperties } from "react";
 
 import { cn } from "@/lib/utils";
 
 const STAGGER = 0.035;
 
 /**
- * Text that rolls letter by letter on hover. The parent can drive it by
- * setting `whileHover="hovered"` itself, or the span handles hover on its own.
+ * Text that rolls letter by letter when its link/button is hovered or focused.
+ * Pure CSS (see `.text-roll` in globals.css) so it costs nothing at load.
  */
 export function TextRoll({
   children,
@@ -23,42 +21,32 @@ export function TextRoll({
   const delayFor = (i: number) =>
     center ? STAGGER * Math.abs(i - (letters.length - 1) / 2) : STAGGER * i;
 
+  const row = (copy: "top" | "bottom") => (
+    <span aria-hidden className={cn("block", copy === "bottom" && "absolute inset-0")}>
+      {letters.map((l, i) => (
+        <span
+          key={i}
+          data-roll={copy}
+          className="inline-block whitespace-pre"
+          style={{ "--roll-delay": `${delayFor(i)}s` } as CSSProperties}
+        >
+          {l}
+        </span>
+      ))}
+    </span>
+  );
+
   return (
-    <motion.span
-      initial="initial"
-      whileHover="hovered"
-      className={cn("relative block overflow-hidden", className)}
-    >
+    <span className={cn("text-roll relative block overflow-hidden", className)}>
       <span className="sr-only">{children}</span>
-      <span aria-hidden className="block">
-        {letters.map((l, i) => (
-          <motion.span
-            key={i}
-            variants={{ initial: { y: 0 }, hovered: { y: "-100%" } }}
-            transition={{ ease: "easeInOut", delay: delayFor(i) }}
-            className="inline-block whitespace-pre"
-          >
-            {l}
-          </motion.span>
-        ))}
-      </span>
-      <span aria-hidden className="absolute inset-0 block">
-        {letters.map((l, i) => (
-          <motion.span
-            key={i}
-            variants={{ initial: { y: "100%" }, hovered: { y: 0 } }}
-            transition={{ ease: "easeInOut", delay: delayFor(i) }}
-            className="inline-block whitespace-pre"
-          >
-            {l}
-          </motion.span>
-        ))}
-      </span>
-    </motion.span>
+      {row("top")}
+      {row("bottom")}
+    </span>
   );
 }
 
 /**
  * Adapted from Skiper 58 (text roll navigation) — https://skiper-ui.com
+ * Rewritten from Motion to CSS transitions for performance.
  * Free version: attribution to Skiper UI is required.
  */

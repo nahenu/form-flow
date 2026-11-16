@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useId, useState, type RefObject } from "react"
-import { motion } from "motion/react"
+import { m } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
@@ -150,7 +150,7 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
         strokeLinecap="round"
       />
       <defs>
-        <motion.linearGradient
+        <m.linearGradient
           className="transform-gpu"
           id={id}
           gradientUnits={"userSpaceOnUse"}
@@ -182,7 +182,7 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
             stopColor={gradientStopColor}
             stopOpacity="0"
           ></stop>
-        </motion.linearGradient>
+        </m.linearGradient>
       </defs>
     </svg>
   )

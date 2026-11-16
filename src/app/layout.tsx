@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter, Inter_Tight } from "next/font/google";
-import { MotionConfig } from "motion/react";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -16,6 +16,8 @@ const interTight = Inter_Tight({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  // Only used for small labels below the fold; don't compete with the hero fonts.
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -38,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${inter.variable} ${interTight.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <MotionConfig reducedMotion="user">{children}</MotionConfig>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
