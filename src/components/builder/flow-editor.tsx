@@ -42,6 +42,7 @@ import {
 } from "@/lib/forms/logic";
 import * as ops from "@/lib/forms/operations";
 import { END, type Condition, type ConditionOperator, type Form, type Route, type Step } from "@/lib/forms/types";
+import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
 
 const START = "__start";
@@ -608,7 +609,7 @@ function FlowPanel({
         <li className="flex gap-2">
           <Trash2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
           <span>
-            Select a route and press <kbd className="rounded border border-border bg-muted px-1 font-mono text-[11px] text-foreground">Delete</kbd> to remove it. Undo works here too.
+            Select a route and press <Kbd className="align-[1px]">Delete</Kbd> to remove it. Undo works here too.
           </span>
         </li>
       </ul>

@@ -2,6 +2,7 @@
 
 import { Copy, Keyboard, Plus, Trash2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { KbdGroup } from "@/components/ui/kbd";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { FIELD_TYPES } from "@/lib/forms/field-types";
@@ -97,7 +98,7 @@ export function Inspector({ form, field, onChange, onDuplicate, onRemove, onClos
             <ul className="space-y-2">
               {field.options.map((option, i) => (
                 <li key={i} className="flex items-center gap-2">
-                  <span className="w-5 shrink-0 text-center font-mono text-[11px] text-muted-foreground">
+                  <span className="w-5 shrink-0 text-center text-[11px] font-semibold text-muted-foreground">
                     {String.fromCharCode(65 + i)}
                   </span>
                   <Input
@@ -206,16 +207,18 @@ function FormSummary({ form }: { form: Form }) {
           <Keyboard className="size-4 text-primary" /> Shortcuts
         </p>
         <ul className="mt-3 space-y-2 text-xs text-muted-foreground">
-          {[
-            ["Undo", "Ctrl Z"],
-            ["Redo", "Ctrl Shift Z"],
-            ["Delete selected field", "Del"],
-            ["Deselect", "Esc"],
-            ["Move a field (on its handle)", "Space ↑ ↓"],
-          ].map(([action, keys]) => (
+          {(
+            [
+              ["Undo", ["Ctrl", "Z"]],
+              ["Redo", ["Ctrl", "Shift", "Z"]],
+              ["Delete selected field", ["Del"]],
+              ["Deselect", ["Esc"]],
+              ["Move a field (on its handle)", ["Space", "↑", "↓"]],
+            ] as const
+          ).map(([action, keys]) => (
             <li key={action} className="flex items-center justify-between gap-3">
               {action}
-              <kbd className="shrink-0 whitespace-nowrap rounded border border-border bg-white px-1.5 py-0.5 font-mono text-[10px] text-foreground">{keys}</kbd>
+              <KbdGroup keys={keys} />
             </li>
           ))}
         </ul>

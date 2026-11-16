@@ -39,7 +39,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
                   <span className="h-2 overflow-hidden rounded-full bg-secondary">
                     <span className={`block h-full rounded-full ${b.highlight ? "bg-brand" : "bg-primary"}`} style={{ width: `${b.value}%` }} />
                   </span>
-                  <span className="text-right font-mono tabular-nums">{b.value}</span>
+                  <span className="text-right font-medium tabular-nums">{b.value}</span>
                 </li>
               ))}
             </ul>

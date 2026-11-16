@@ -117,7 +117,7 @@ export function Features() {
               <article>
                 <div className="flex items-baseline justify-between">
                   <h3 className="font-display text-3xl">{c.title}</h3>
-                  <span className={`font-mono text-sm ${c.muted}`}>{c.n}</span>
+                  <span className={`font-display text-sm font-medium tabular-nums ${c.muted}`}>{c.n}</span>
                 </div>
                 <p className={`mt-3 max-w-md leading-relaxed ${c.muted}`}>{c.body}</p>
                 {c.visual}

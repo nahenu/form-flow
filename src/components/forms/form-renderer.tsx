@@ -280,7 +280,7 @@ function FieldInput({
             >
               <kbd
                 className={cn(
-                  "grid size-5 place-items-center rounded border border-input bg-white font-mono text-[10px] text-muted-foreground",
+                  "grid size-5 place-items-center rounded-[5px] border border-input bg-white text-[10px] font-semibold text-muted-foreground",
                   value === o && "border-transparent bg-brand text-primary",
                 )}
               >

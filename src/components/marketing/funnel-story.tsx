@@ -102,13 +102,13 @@ export function FunnelChart() {
               </span>
               <span
                 className={cn(
-                  "text-right font-mono text-[11px] tabular-nums",
+                  "text-right text-[11px] font-medium tabular-nums",
                   highlight ? "font-bold text-[#d6337f]" : "text-muted-foreground",
                 )}
               >
                 {drop ? `−${drop}%` : ""}
               </span>
-              <span className="text-right font-mono text-xs font-semibold tabular-nums text-primary">{row.value}</span>
+              <span className="text-right text-xs font-semibold tabular-nums text-primary">{row.value}</span>
             </li>
           );
         })}

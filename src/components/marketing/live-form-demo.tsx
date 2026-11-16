@@ -124,7 +124,7 @@ export function DemoFormCard({ form }: { form: DemoForm }) {
                     >
                       <kbd
                         className={cn(
-                          "grid size-5 place-items-center rounded border border-input bg-white font-mono text-[10px] text-muted-foreground",
+                          "grid size-5 place-items-center rounded-[5px] border border-input bg-white text-[10px] font-semibold text-muted-foreground",
                           form.purpose === p && "border-transparent bg-brand text-primary",
                         )}
                       >
@@ -258,7 +258,7 @@ export function DemoFunnel({ form }: { form: DemoForm }) {
                 <span className={cn("font-medium text-muted-foreground", (done || current) && "text-foreground")}>
                   {label}
                 </span>
-                <span className="font-mono tabular-nums text-muted-foreground">
+                <span className="tabular-nums text-muted-foreground">
                   {current ? (
                     <span className="font-sans font-medium text-[#b8326f]">in progress</span>
                   ) : timings[i] !== undefined ? (
