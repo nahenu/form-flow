@@ -21,21 +21,23 @@ type Template = "blank" | "lead";
 
 export function FormsDashboard({ forms }: { forms: FormSummary[] }) {
   const router = useRouter();
-  const [creating, setCreating] = useState<Template | null>(null);
   const [, startTransition] = useTransition();
+  // React tracks the create-and-navigate as one transition, so the spinner ends on its own.
+  // (A plain "creating" flag stayed stuck: Next keeps this page alive, state and all, for the back button.)
+  const [isCreating, startCreating] = useTransition();
+  const [lastTemplate, setLastTemplate] = useState<Template | null>(null);
+  const creating = isCreating ? lastTemplate : null;
   // Hide deleted cards immediately; the server catches up on refresh.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const list = forms.filter((f) => !hidden.has(f.id));
 
-  async function create(template: Template) {
-    setCreating(template);
-    const result = await createForm(template);
-    if (result.ok) {
-      router.push(`/builder/${result.id}`);
-    } else {
-      setCreating(null);
-      toast.error(result.error);
-    }
+  function create(template: Template) {
+    setLastTemplate(template);
+    startCreating(async () => {
+      const result = await createForm(template);
+      if (result.ok) router.push(`/builder/${result.id}`);
+      else toast.error(result.error);
+    });
   }
 
   async function duplicate(id: string) {
