@@ -20,6 +20,12 @@ export const auth = betterAuth({
     // Avoid a database round trip on every request; sessions are re-checked every 5 minutes.
     cookieCache: { enabled: true, maxAge: 5 * 60 },
   },
+  rateLimit: {
+    // On by default in production (brute-force protection on sign-in and sign-up).
+    // The end-to-end suite signs up many accounts from one IP at once, so its test
+    // server sets AUTH_RATE_LIMIT=off. Never set that in a real deployment.
+    enabled: process.env.AUTH_RATE_LIMIT === "off" ? false : undefined,
+  },
   plugins: [nextCookies()],
 });
 
