@@ -41,6 +41,8 @@ export default defineConfig({
       NEXT_PUBLIC_SITE_URL: BASE_URL,
       // Many parallel sign-ups from one IP would trip auth rate limiting. Test server only.
       AUTH_RATE_LIMIT: "off",
+      // Emails (password reset) are appended here for tests to read.
+      EMAIL_OUTBOX_FILE: ".data/e2e/outbox.jsonl",
     },
   },
 });
