@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, BarChart3, Check, CloudOff, Eye, Loader2, PencilLine, Redo2, Send, Undo2 } from "lucide-react";
+import { ArrowLeft, BarChart3, Check, CloudOff, Eye, Loader2, PencilLine, Redo2, Send, Undo2, Workflow } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LogoMark } from "@/components/marketing/logo";
 import { cn } from "@/lib/utils";
 
-export type BuilderMode = "edit" | "preview";
+export type BuilderMode = "edit" | "flow" | "preview";
 
 export type PublishState = "draft" | "live" | "changed";
 
@@ -81,6 +81,7 @@ export function BuilderHeader(props: BuilderHeaderProps) {
         {(
           [
             ["edit", "Edit", PencilLine],
+            ["flow", "Flow", Workflow],
             ["preview", "Preview", Eye],
           ] as const
         ).map(([value, label, Icon]) => (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   closestCenter,
   DndContext,
@@ -24,6 +25,16 @@ import { toast } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { FormRenderer } from "@/components/forms/form-renderer";
+
+// The flow editor (React Flow) only loads when its tab is opened.
+const FlowEditor = dynamic(() => import("./flow-editor").then((m) => m.FlowEditor), {
+  ssr: false,
+  loading: () => (
+    <div role="status" className="grid h-full place-items-center text-sm text-muted-foreground">
+      Loading the flow editor…
+    </div>
+  ),
+});
 import { publishForm, saveForm, unpublishForm } from "@/app/actions/forms";
 import { toDefinition } from "@/lib/forms/definition";
 import { stableStringify } from "@/lib/stable-json";
@@ -367,7 +378,19 @@ function BuilderLoaded({ form, initialPublished }: { form: Form; initialPublishe
           onRedo={() => redo(formId)}
         />
 
-        {mode === "preview" ? (
+        {mode === "flow" ? (
+          <main className="min-h-0 flex-1" aria-label="Form flow">
+            <FlowEditor
+              form={form}
+              onEdit={(recipe, key) => edit(formId, recipe, key)}
+              onOpenStep={(stepId) => {
+                setMode("edit");
+                const first = form.steps.find((s) => s.id === stepId)?.fields[0];
+                if (first) focusField(first.id);
+              }}
+            />
+          </main>
+        ) : mode === "preview" ? (
           <main className="flex-1 overflow-y-auto" aria-label="Form preview">
             <div className="sticky top-0 z-10 flex justify-center border-b border-border bg-white/80 py-2 backdrop-blur-sm">
               <div role="tablist" aria-label="Preview size" className="flex rounded-lg bg-secondary p-0.5 text-sm">
