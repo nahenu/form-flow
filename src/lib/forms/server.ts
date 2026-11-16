@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db, dbReady } from "@/db";
 import { forms, responses, type FormRow } from "@/db/schema";
 import { countFields } from "./operations";
@@ -33,11 +33,19 @@ export async function listForms(userId: string): Promise<FormSummary[]> {
       definition: forms.definition,
       publishedAt: forms.publishedAt,
       updatedAt: forms.updatedAt,
-      responseCount: sql<number>`(select count(*) from ${responses} where ${responses.formId} = ${forms.id})::int`,
     })
     .from(forms)
     .where(and(eq(forms.userId, userId), isNull(forms.deletedAt)))
     .orderBy(desc(forms.updatedAt));
+
+  const counts = rows.length
+    ? await db
+        .select({ formId: responses.formId, count: sql<number>`count(*)::int` })
+        .from(responses)
+        .where(inArray(responses.formId, rows.map((r) => r.id)))
+        .groupBy(responses.formId)
+    : [];
+  const countByForm = new Map(counts.map((c) => [c.formId, c.count]));
 
   return rows.map((r) => ({
     id: r.id,
@@ -46,7 +54,7 @@ export async function listForms(userId: string): Promise<FormSummary[]> {
     fieldCount: countFields({ steps: r.definition.steps } as Form),
     updatedAt: r.updatedAt.getTime(),
     isPublished: r.publishedAt !== null,
-    responseCount: r.responseCount,
+    responseCount: countByForm.get(r.id) ?? 0,
   }));
 }
 

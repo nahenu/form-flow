@@ -1,43 +1,67 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AnimatePresence, m } from "motion/react";
-import { ArrowLeft, ArrowRight, Check, ChevronDown, RotateCcw, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Loader2, RotateCcw, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { activeSteps, computeVisibility } from "@/lib/forms/logic";
-import type { Field, Form } from "@/lib/forms/types";
+import type { Field, FormDefinitionLike } from "@/lib/forms/types";
+import { validateField } from "@/lib/forms/validation";
 import { cn } from "@/lib/utils";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ease = [0.22, 1, 0.36, 1] as const;
+
+const now = () => performance.now();
+const msSince = (start: number) => Math.round(now() - start);
 
 type Answers = Record<string, string>;
 
-export function validateField(field: Field, value: string | undefined): string | null {
-  const v = (value ?? "").trim();
-  if (!v) return field.required ? "This one's required." : null;
-  if (field.type === "email" && !EMAIL_RE.test(v)) return "That doesn't look like an email address.";
-  if (field.type === "phone" && v.replace(/\D/g, "").length < 10) return "Enter at least 10 digits.";
-  if (field.type === "number" && Number.isNaN(Number(v))) return "Enter a number.";
-  return null;
+export type SubmitResult = { ok: true } | { ok: false; error: string; fieldErrors?: Record<string, string> };
+
+export interface FormTracker {
+  stepView: (stepId: string) => void;
+  stepComplete: (stepId: string, durationMs: number) => void;
+}
+
+interface FormRendererProps {
+  form: FormDefinitionLike & { title: string };
+  className?: string;
+  /** When given, the last step really submits. Without it the renderer is a preview. */
+  onSubmit?: (answers: Answers) => Promise<SubmitResult>;
+  /** Receives step views and completions for funnel analytics. */
+  tracker?: FormTracker;
 }
 
 /**
- * Renders a Form as a working multi-step form, applying conditional logic as
- * the respondent answers: hidden fields aren't shown or validated, and steps
- * with nothing visible are skipped. Nothing is sent anywhere yet.
+ * Renders a form as a working multi-step form, applying conditional logic as
+ * the respondent answers: hidden fields aren't shown, validated or submitted,
+ * and steps with nothing visible are skipped.
  */
-export function FormRenderer({ form, className }: { form: Form; className?: string }) {
+export function FormRenderer({ form, className, onSubmit: submit, tracker }: FormRendererProps) {
   const [currentStepId, setCurrentStepId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Answers>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const stepEnteredAt = useRef(0);
 
   const visible = computeVisibility(form, answers);
   const steps = activeSteps(form, visible);
+  // Track the step by id: the list of active steps can change as answers change.
+  const found = steps.findIndex((s) => s.id === currentStepId);
+  const stepIndex = found === -1 ? 0 : found;
+  const step = steps[stepIndex];
+  const viewedStepId = done ? null : (step?.id ?? null);
 
-  if (steps.length === 0) {
+  useEffect(() => {
+    if (!viewedStepId) return;
+    stepEnteredAt.current = now();
+    tracker?.stepView(viewedStepId);
+  }, [viewedStepId, tracker]);
+
+  if (!step) {
     return (
       <div className={cn("rounded-2xl border border-dashed border-input bg-white p-10 text-center", className)}>
         <p className="font-display text-xl text-foreground">Nothing to preview yet</p>
@@ -46,10 +70,6 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
     );
   }
 
-  // Track the step by id: the list of active steps can change as answers change.
-  const found = steps.findIndex((s) => s.id === currentStepId);
-  const stepIndex = found === -1 ? 0 : found;
-  const step = steps[stepIndex];
   const fields = step.fields.filter((f) => visible.has(f.id));
   const isLast = stepIndex === steps.length - 1;
   const progress = done ? 1 : stepIndex / steps.length;
@@ -59,8 +79,9 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
     if (errors[id]) setErrors((e) => ({ ...e, [id]: "" }));
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     const stepErrors: Record<string, string> = {};
     for (const field of fields) {
       const err = validateField(field, answers[field.id]);
@@ -71,14 +92,33 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
       document.getElementById(`ff-${Object.keys(stepErrors)[0]}`)?.focus();
       return;
     }
-    if (isLast) setDone(true);
-    else setCurrentStepId(steps[stepIndex + 1].id);
+
+    tracker?.stepComplete(step.id, msSince(stepEnteredAt.current));
+    if (!isLast) {
+      setCurrentStepId(steps[stepIndex + 1].id);
+      return;
+    }
+
+    if (submit) {
+      setSubmitting(true);
+      setSubmitError(null);
+      const onlyVisible = Object.fromEntries(Object.entries(answers).filter(([id]) => visible.has(id)));
+      const result = await submit(onlyVisible).catch((): SubmitResult => ({ ok: false, error: "Couldn't reach the server. Check your connection and try again." }));
+      setSubmitting(false);
+      if (!result.ok) {
+        setSubmitError(result.error);
+        if (result.fieldErrors) setErrors(result.fieldErrors);
+        return;
+      }
+    }
+    setDone(true);
   }
 
   function restart() {
     setCurrentStepId(null);
     setAnswers({});
     setErrors({});
+    setSubmitError(null);
     setDone(false);
   }
 
@@ -101,11 +141,13 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
             </span>
             <h2 className="mt-5 font-display text-2xl text-foreground">Thanks, that&apos;s everything.</h2>
             <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-              Your response was recorded. (In preview nothing is actually sent.)
+              {submit ? "Your response was sent. You can close this page." : "In preview nothing is actually sent."}
             </p>
-            <button type="button" onClick={restart} className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
-              <RotateCcw className="size-3.5" /> Start again
-            </button>
+            {!submit && (
+              <button type="button" onClick={restart} className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
+                <RotateCcw className="size-3.5" /> Start again
+              </button>
+            )}
           </m.div>
         ) : (
           <m.form
@@ -137,6 +179,12 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
               ))}
             </div>
 
+            {submitError && (
+              <p role="alert" className="mt-6 rounded-lg bg-destructive/5 px-3 py-2.5 text-sm font-medium text-destructive">
+                {submitError}
+              </p>
+            )}
+
             <div className="mt-8 flex items-center justify-between gap-3">
               {stepIndex > 0 ? (
                 <button
@@ -151,9 +199,11 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
               )}
               <button
                 type="submit"
-                className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                disabled={submitting}
+                className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-70"
               >
-                {isLast ? "Submit" : "Next"}
+                {submitting && <Loader2 className="size-4 animate-spin" />}
+                {submitting ? "Sending…" : isLast ? "Submit" : "Next"}
                 {!isLast && <ArrowRight className="size-4" />}
               </button>
             </div>
@@ -213,7 +263,7 @@ function FieldInput({
       break;
     case "multiple_choice":
       control = (
-        <div role="radiogroup" aria-labelledby={`${id}-label`} className="grid gap-2 sm:grid-cols-2">
+        <div role="radiogroup" aria-labelledby={`${id}-label`} aria-describedby={describedBy} aria-required={field.required} aria-invalid={!!error} className="grid gap-2 sm:grid-cols-2">
           {field.options.map((o, i) => (
             <button
               key={i}
@@ -244,7 +294,7 @@ function FieldInput({
       break;
     case "rating":
       control = (
-        <div role="radiogroup" aria-labelledby={`${id}-label`} className="flex gap-1.5">
+        <div role="radiogroup" aria-labelledby={`${id}-label`} aria-describedby={describedBy} aria-required={field.required} aria-invalid={!!error} className="flex gap-1.5">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
@@ -278,12 +328,20 @@ function FieldInput({
     }
   }
 
+  const isGroup = field.type === "multiple_choice" || field.type === "rating";
+  const LabelTag = isGroup ? "p" : "label";
+
   return (
     <div>
-      <label id={`${id}-label`} htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">
+      {/* Option groups are named via aria-labelledby. A <label for> would wrongly rename their first option. */}
+      <LabelTag
+        id={`${id}-label`}
+        {...(isGroup ? {} : { htmlFor: id })}
+        className="mb-1.5 block text-sm font-medium text-foreground"
+      >
         {field.label || "Untitled question"}
         {field.required && <span className="ml-0.5 text-[#d6337f]" aria-hidden> *</span>}
-      </label>
+      </LabelTag>
       {control}
       {field.helpText && (
         <p id={`${id}-help`} className="mt-1.5 text-xs text-muted-foreground">
