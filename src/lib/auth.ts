@@ -5,6 +5,7 @@ import { nextCookies } from "better-auth/next-js";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db, dbReady, schema } from "@/db";
+import { resetPasswordEmail, sendEmail } from "@/lib/email";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -15,8 +16,18 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     autoSignIn: true,
+    resetPasswordTokenExpiresIn: 60 * 60,
+    // A password reset signs out every other device.
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user, url }) => {
+      await sendEmail({ to: user.email, ...resetPasswordEmail(user.name, url) });
+    },
   },
   session: {
+    // "Remember me" keeps people signed in for 7 days, extended once a day while
+    // they keep using it. Unticked, the session ends when the browser closes.
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
     // Avoid a database round trip on every request; sessions are re-checked every 5 minutes.
     cookieCache: { enabled: true, maxAge: 5 * 60 },
   },
