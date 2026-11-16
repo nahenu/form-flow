@@ -148,6 +148,53 @@
   }
 }
 
+/* Text roll (components/ui/skiper-ui/skiper58.tsx): letters slide up on hover/focus. */
+.text-roll [data-roll] {
+  transition: transform 0.3s ease-in-out var(--roll-delay, 0s);
+}
+.text-roll [data-roll="bottom"] {
+  transform: translateY(100%);
+}
+:is(a, button):is(:hover, :focus-visible) .text-roll [data-roll="top"] {
+  transform: translateY(-100%);
+}
+:is(a, button):is(:hover, :focus-visible) .text-roll [data-roll="bottom"] {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .text-roll [data-roll] {
+    transition: none;
+  }
+}
+
+/* Entrances (see components/motion/reveal.tsx). Pure CSS: no JS, no hydration wait. */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.reveal-load {
+  animation: reveal-up 0.7s var(--reveal-delay, 0s) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@supports (animation-timeline: view()) {
+  .reveal-view {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-load,
+  .reveal-view {
+    animation: none;
+  }
+}
+
 /* Little pill label above section headings. */
 @utility kicker {
   display: inline-flex;

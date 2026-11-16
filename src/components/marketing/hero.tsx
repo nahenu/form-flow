@@ -13,11 +13,11 @@ export function Hero() {
       />
       <div
         aria-hidden
-        className="absolute left-1/2 top-[30rem] -z-10 h-[34rem] w-[min(70rem,140vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(9,49,141,0.22),transparent)] blur-2xl"
+        className="absolute left-1/2 top-[30rem] -z-10 h-[34rem] w-[min(70rem,140vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(9,49,141,0.18),transparent)]"
       />
       <div
         aria-hidden
-        className="absolute left-[60%] top-[34rem] -z-10 h-[24rem] w-[40rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(253,145,204,0.4),transparent)] blur-2xl"
+        className="absolute left-[60%] top-[34rem] -z-10 h-[24rem] w-[40rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(253,145,204,0.35),transparent)]"
       />
 
       <div className="mx-auto max-w-6xl px-5 pb-24 pt-16 text-center sm:pt-24">
@@ -33,7 +33,8 @@ export function Hero() {
           </a>
         </Reveal>
 
-        <Reveal delay={0.06}>
+        {/* Headline and intro paint immediately: they're the LCP candidates. */}
+        <div>
           <h1 className="mx-auto mt-7 max-w-4xl font-display text-[clamp(2.75rem,7vw,5.25rem)] text-foreground">
             Forms people actually{" "}
             <span className="relative inline-block whitespace-nowrap text-primary">
@@ -55,14 +56,11 @@ export function Hero() {
               </svg>
             </span>
           </h1>
-        </Reveal>
-
-        <Reveal delay={0.12}>
           <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl">
             Build multi-step forms, branch on answers, and see the exact step where people give up, so you can fix it the
             same day.
           </p>
-        </Reveal>
+        </div>
 
         <Reveal delay={0.18} className="mt-9 flex flex-wrap items-center justify-center gap-3">
           <Link

@@ -1,29 +1,24 @@
-"use client";
+import type { ComponentProps, CSSProperties } from "react";
+import { cn } from "@/lib/utils";
 
-import { motion, type HTMLMotionProps } from "motion/react";
-
-type RevealProps = HTMLMotionProps<"div"> & {
+type RevealProps = ComponentProps<"div"> & {
+  /** Seconds to wait before the on-load reveal starts. */
   delay?: number;
-  /** Animate when scrolled into view instead of on mount. */
+  /** Reveal as the element scrolls into view instead of on load. */
   inView?: boolean;
 };
 
-const hidden = { opacity: 0, y: 14, filter: "blur(6px)" };
-const shown = { opacity: 1, y: 0, filter: "blur(0px)" };
-
-export function Reveal({ delay = 0, inView = false, children, ...props }: RevealProps) {
-  const target = inView
-    ? { whileInView: shown, viewport: { once: true, margin: "-80px" } }
-    : { animate: shown };
-
+/**
+ * Fade-and-rise entrance done entirely in CSS (see globals.css), so it costs
+ * no JavaScript and never delays hydration. Scroll reveals use scroll-driven
+ * animations where supported; elsewhere the content is simply visible.
+ */
+export function Reveal({ delay = 0, inView = false, className, style, ...props }: RevealProps) {
   return (
-    <motion.div
-      initial={hidden}
-      {...target}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+    <div
+      className={cn(inView ? "reveal-view" : "reveal-load", className)}
+      style={{ ...style, "--reveal-delay": `${delay}s` } as CSSProperties}
       {...props}
-    >
-      {children}
-    </motion.div>
+    />
   );
 }
