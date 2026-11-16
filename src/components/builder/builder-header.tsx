@@ -1,17 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Check, Eye, PencilLine, Redo2, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, CloudOff, Eye, Loader2, PencilLine, Redo2, Undo2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LogoMark } from "@/components/marketing/logo";
-import { timeAgo } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 export type BuilderMode = "edit" | "preview";
 
 interface BuilderHeaderProps {
   title: string;
-  updatedAt: number;
+  saveStatus: "saved" | "saving" | "error";
+  onRetrySave: () => void;
   mode: BuilderMode;
   canUndo: boolean;
   canRedo: boolean;
@@ -22,7 +22,7 @@ interface BuilderHeaderProps {
 }
 
 export function BuilderHeader(props: BuilderHeaderProps) {
-  const { title, updatedAt, mode, canUndo, canRedo } = props;
+  const { title, saveStatus, mode, canUndo, canRedo } = props;
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-white px-3 sm:gap-3 sm:px-4">
@@ -49,7 +49,24 @@ export function BuilderHeader(props: BuilderHeaderProps) {
           className="min-w-0 max-w-xs flex-1 truncate rounded-md bg-transparent px-2 py-1 font-display text-base text-foreground outline-none hover:bg-muted focus:bg-muted sm:text-lg"
         />
         <span className="hidden shrink-0 items-center gap-1 text-xs text-muted-foreground md:inline-flex" aria-live="polite">
-          <Check className="size-3.5 text-primary" /> Saved {timeAgo(updatedAt)}
+          {saveStatus === "saved" && (
+            <>
+              <Check className="size-3.5 text-primary" /> Saved
+            </>
+          )}
+          {saveStatus === "saving" && (
+            <>
+              <Loader2 className="size-3.5 animate-spin" /> Saving…
+            </>
+          )}
+          {saveStatus === "error" && (
+            <>
+              <CloudOff className="size-3.5 text-destructive" /> Couldn&apos;t save.
+              <button type="button" onClick={props.onRetrySave} className="font-semibold text-primary hover:underline">
+                Retry
+              </button>
+            </>
+          )}
         </span>
       </div>
 

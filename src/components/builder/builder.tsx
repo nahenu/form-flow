@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   closestCenter,
   DndContext,
@@ -24,8 +23,10 @@ import { toast } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { FormRenderer } from "@/components/forms/form-renderer";
+import { saveForm } from "@/app/actions/forms";
+import { toDefinition } from "@/lib/forms/definition";
 import * as ops from "@/lib/forms/operations";
-import { useCanUndoRedo, useFormsStore, useHydrated } from "@/lib/forms/store";
+import { useCanUndoRedo, useFormsStore } from "@/lib/forms/store";
 import type { Field, FieldType, Form } from "@/lib/forms/types";
 import { cn } from "@/lib/utils";
 import { BuilderHeader, type BuilderMode } from "./builder-header";
@@ -46,13 +47,63 @@ function isTypingTarget(target: EventTarget | null) {
   return !!el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
 }
 
-export function Builder({ formId }: { formId: string }) {
-  const hydrated = useHydrated();
-  const form = useFormsStore((s) => s.forms[formId]);
+/** Loads the server copy into the editing store for as long as the builder is open. */
+export function Builder({ initial }: { initial: Form }) {
+  const stored = useFormsStore((s) => s.forms[initial.id]);
+  const initialRef = useRef(initial);
 
-  if (!hydrated) return <BuilderSkeleton />;
-  if (!form) return <FormNotFound />;
-  return <BuilderLoaded form={form} />;
+  useEffect(() => {
+    const { load, unload } = useFormsStore.getState();
+    const form = initialRef.current;
+    load(form);
+    return () => unload(form.id);
+  }, []);
+
+  return <BuilderLoaded form={stored ?? initial} />;
+}
+
+export type SaveStatus = "saved" | "saving" | "error";
+
+/**
+ * Debounced autosave. Saves run one at a time, in order, so a slow request can
+ * never overwrite a newer one.
+ */
+function useAutosave(form: Form): { status: SaveStatus; retry: () => void } {
+  const snapshot = useMemo(() => JSON.stringify(toDefinition(form)), [form]);
+  const [savedSnapshot, setSavedSnapshot] = useState(snapshot);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const dirty = snapshot !== savedSnapshot;
+
+  useEffect(() => {
+    if (!dirty) return;
+    const timer = setTimeout(() => {
+      queue.current = queue.current.then(async () => {
+        const result = await saveForm(form.id, JSON.parse(snapshot)).catch(() => null);
+        if (result?.ok) {
+          setSavedSnapshot(snapshot);
+          setError(false);
+        } else {
+          setError(true);
+        }
+      });
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [dirty, snapshot, form.id, attempt]);
+
+  // Warn before closing the tab with unsaved changes.
+  useEffect(() => {
+    if (!dirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
+
+  return {
+    status: error ? "error" : dirty ? "saving" : "saved",
+    retry: () => setAttempt((n) => n + 1),
+  };
 }
 
 function BuilderLoaded({ form }: { form: Form }) {
@@ -61,6 +112,7 @@ function BuilderLoaded({ form }: { form: Form }) {
   const undo = useFormsStore((s) => s.undo);
   const redo = useFormsStore((s) => s.redo);
   const { canUndo, canRedo } = useCanUndoRedo(formId);
+  const save = useAutosave(form);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<BuilderMode>("edit");
@@ -220,7 +272,8 @@ function BuilderLoaded({ form }: { form: Form }) {
       <div className="flex h-dvh flex-col bg-muted/50">
         <BuilderHeader
           title={form.title}
-          updatedAt={form.updatedAt}
+          saveStatus={save.status}
+          onRetrySave={save.retry}
           mode={mode}
           canUndo={canUndo}
           canRedo={canRedo}
@@ -355,7 +408,7 @@ function sortableIndex(active: Active) {
   return (active.data.current as { sortable?: { index: number } } | undefined)?.sortable?.index ?? -1;
 }
 
-function BuilderSkeleton() {
+export function BuilderSkeleton() {
   return (
     <div className="flex h-dvh flex-col bg-muted/50" aria-busy="true" aria-label="Loading builder">
       <div className="h-14 border-b border-border bg-white" />
@@ -366,20 +419,6 @@ function BuilderSkeleton() {
           <div className="h-48 animate-pulse rounded-2xl bg-white" />
         </div>
         <div className="hidden border-l border-border bg-white lg:block" />
-      </div>
-    </div>
-  );
-}
-
-function FormNotFound() {
-  return (
-    <div className="grid min-h-dvh place-items-center bg-muted/50 px-5 text-center">
-      <div>
-        <h1 className="font-display text-3xl text-foreground">Form not found</h1>
-        <p className="mt-2 text-muted-foreground">It may have been deleted, or it was created in another browser.</p>
-        <Link href="/dashboard" className="mt-6 inline-flex h-10 items-center rounded-full bg-primary px-5 text-sm font-semibold text-white">
-          Back to your forms
-        </Link>
       </div>
     </div>
   );
