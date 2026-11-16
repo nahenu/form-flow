@@ -239,6 +239,8 @@ function BuilderLoaded({ form, initialPublished }: { form: Form; initialPublishe
     function onKeyDown(e: KeyboardEvent) {
       const mod = e.metaKey || e.ctrlKey;
       const typing = isTypingTarget(e.target);
+      // Browser autofill fires keydown events with no `key`; ignore them.
+      if (typeof e.key !== "string") return;
       const key = e.key.toLowerCase();
       if (mod && key === "z" && !typing) {
         e.preventDefault();
