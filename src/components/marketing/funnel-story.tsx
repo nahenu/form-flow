@@ -36,19 +36,21 @@ export function FunnelChart() {
   const completion = rows[rows.length - 1].value;
 
   return (
-    <div className="rounded-lg border border-rule bg-card p-6 sm:p-8">
+    <div className="rounded-[1.75rem] border border-border bg-white p-6 shadow-[0_30px_60px_-35px_rgba(9,49,141,0.35)] sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <span className="eyebrow">Example funnel · illustrative data</span>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-display text-6xl">
-              <NumberTicker value={completion} startValue={33} className="tracking-tight text-foreground dark:text-foreground" />%
+          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            Example funnel · illustrative
+          </span>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-display text-6xl text-primary">
+              <NumberTicker value={completion} startValue={33} className="tracking-tight text-primary dark:text-primary" />%
             </span>
-            <span className="text-sm text-muted-foreground">finish the form</span>
+            <span className="text-sm font-medium text-muted-foreground">finish the form</span>
           </div>
         </div>
 
-        <div role="tablist" aria-label="Funnel version" className="relative flex rounded-md border border-rule p-0.5 text-xs">
+        <div role="tablist" aria-label="Funnel version" className="relative flex rounded-full bg-secondary p-1 text-sm font-semibold">
           {(["before", "after"] as const).map((v) => (
             <button
               key={v}
@@ -56,14 +58,14 @@ export function FunnelChart() {
               aria-selected={view === v}
               onClick={() => setView(v)}
               className={cn(
-                "relative z-10 rounded-[4px] px-3 py-1.5 capitalize transition-colors",
-                view === v ? "text-background" : "text-muted-foreground hover:text-foreground",
+                "relative z-10 rounded-full px-4 py-1.5 capitalize transition-colors",
+                view === v ? "text-white" : "text-primary/60 hover:text-primary",
               )}
             >
               {view === v && (
                 <motion.span
                   layoutId="funnel-tab"
-                  className="absolute inset-0 -z-10 rounded-[4px] bg-foreground"
+                  className="absolute inset-0 -z-10 rounded-full bg-primary"
                   transition={{ duration: 0.35, ease }}
                 />
               )}
@@ -73,7 +75,7 @@ export function FunnelChart() {
         </div>
       </div>
 
-      <ol ref={listRef} className="mt-8 space-y-2">
+      <ol ref={listRef} className="mt-8 space-y-2.5">
         {rows.map((row, i) => {
           const prev = rows[i - 1]?.value;
           const drop = prev ? Math.round(((prev - row.value) / prev) * 100) : null;
@@ -83,10 +85,12 @@ export function FunnelChart() {
               key={i}
               className="grid grid-cols-[5.25rem_1fr_2.5rem_2rem] items-center gap-2.5 text-sm sm:grid-cols-[6.5rem_1fr_2.75rem_2.25rem] sm:gap-3"
             >
-              <span className={cn("truncate", highlight ? "text-brand" : "text-muted-foreground")}>{row.label}</span>
-              <span className="relative h-7 overflow-hidden rounded-[3px] bg-muted/70">
+              <span className={cn("truncate font-medium", highlight ? "font-bold text-[#d6337f]" : "text-muted-foreground")}>
+                {row.label}
+              </span>
+              <span className="relative h-8 overflow-hidden rounded-lg bg-secondary">
                 <motion.span
-                  className={cn("absolute inset-y-0 left-0", highlight ? "bg-brand" : "bg-foreground")}
+                  className={cn("absolute inset-y-0 left-0 rounded-lg", highlight ? "bg-brand" : "bg-primary")}
                   initial={{ width: 0 }}
                   animate={{ width: inView ? `${row.value}%` : 0 }}
                   transition={{ duration: 0.8, delay: i * 0.05, ease }}
@@ -95,25 +99,25 @@ export function FunnelChart() {
               <span
                 className={cn(
                   "text-right font-mono text-[11px] tabular-nums",
-                  highlight ? "text-brand" : "text-muted-foreground",
+                  highlight ? "font-bold text-[#d6337f]" : "text-muted-foreground",
                 )}
               >
                 {drop ? `−${drop}%` : ""}
               </span>
-              <span className="text-right font-mono text-xs tabular-nums">{row.value}</span>
+              <span className="text-right font-mono text-xs font-semibold tabular-nums text-primary">{row.value}</span>
             </li>
           );
         })}
       </ol>
 
-      <p className="mt-6 border-t border-rule pt-4 text-sm text-muted-foreground">
+      <p className="mt-6 rounded-xl bg-brand-soft px-4 py-3 text-sm text-primary">
         {view === "before" ? (
           <>
-            <span className="text-brand">41% of people left</span> at the pincode step. Total submissions never showed it.
+            <strong>41% of people left at the pincode step.</strong> Total submissions never showed it.
           </>
         ) : (
           <>
-            With a city dropdown, that step loses <span className="text-foreground">7%</span>. Everything after it recovers.
+            <strong>With a city dropdown, that step loses 7%.</strong> Everything after it recovers.
           </>
         )}
       </p>
