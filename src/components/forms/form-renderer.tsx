@@ -5,6 +5,7 @@ import { AnimatePresence, m } from "motion/react";
 import { ArrowLeft, ArrowRight, Check, ChevronDown, RotateCcw, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { activeSteps, computeVisibility } from "@/lib/forms/logic";
 import type { Field, Form } from "@/lib/forms/types";
 import { cn } from "@/lib/utils";
 
@@ -22,13 +23,19 @@ export function validateField(field: Field, value: string | undefined): string |
   return null;
 }
 
-/** Renders a Form as a working multi-step form. Nothing is sent anywhere yet. */
+/**
+ * Renders a Form as a working multi-step form, applying conditional logic as
+ * the respondent answers: hidden fields aren't shown or validated, and steps
+ * with nothing visible are skipped. Nothing is sent anywhere yet.
+ */
 export function FormRenderer({ form, className }: { form: Form; className?: string }) {
-  const steps = form.steps.filter((s) => s.fields.length > 0);
-  const [index, setIndex] = useState(0);
+  const [currentStepId, setCurrentStepId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Answers>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
+
+  const visible = computeVisibility(form, answers);
+  const steps = activeSteps(form, visible);
 
   if (steps.length === 0) {
     return (
@@ -39,8 +46,11 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
     );
   }
 
-  const stepIndex = Math.min(index, steps.length - 1);
+  // Track the step by id: the list of active steps can change as answers change.
+  const found = steps.findIndex((s) => s.id === currentStepId);
+  const stepIndex = found === -1 ? 0 : found;
   const step = steps[stepIndex];
+  const fields = step.fields.filter((f) => visible.has(f.id));
   const isLast = stepIndex === steps.length - 1;
   const progress = done ? 1 : stepIndex / steps.length;
 
@@ -52,7 +62,7 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     const stepErrors: Record<string, string> = {};
-    for (const field of step.fields) {
+    for (const field of fields) {
       const err = validateField(field, answers[field.id]);
       if (err) stepErrors[field.id] = err;
     }
@@ -62,11 +72,11 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
       return;
     }
     if (isLast) setDone(true);
-    else setIndex(stepIndex + 1);
+    else setCurrentStepId(steps[stepIndex + 1].id);
   }
 
   function restart() {
-    setIndex(0);
+    setCurrentStepId(null);
     setAnswers({});
     setErrors({});
     setDone(false);
@@ -114,14 +124,16 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
             <h2 className="mt-1 font-display text-2xl text-foreground">{step.title || form.title}</h2>
 
             <div className="mt-6 space-y-5">
-              {step.fields.map((field) => (
-                <FieldInput
-                  key={field.id}
-                  field={field}
-                  value={answers[field.id] ?? ""}
-                  error={errors[field.id]}
-                  onChange={(v) => setAnswer(field.id, v)}
-                />
+              {fields.map((field) => (
+                // Fields revealed by an answer on this same step fade in.
+                <m.div key={field.id} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, ease }}>
+                  <FieldInput
+                    field={field}
+                    value={answers[field.id] ?? ""}
+                    error={errors[field.id]}
+                    onChange={(v) => setAnswer(field.id, v)}
+                  />
+                </m.div>
               ))}
             </div>
 
@@ -129,7 +141,7 @@ export function FormRenderer({ form, className }: { form: Form; className?: stri
               {stepIndex > 0 ? (
                 <button
                   type="button"
-                  onClick={() => setIndex(stepIndex - 1)}
+                  onClick={() => setCurrentStepId(steps[stepIndex - 1].id)}
                   className="inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   <ArrowLeft className="size-4" /> Back
