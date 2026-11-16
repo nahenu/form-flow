@@ -10,6 +10,7 @@ import {
   Controls,
   EdgeLabelRenderer,
   getSmoothStepPath,
+  getStraightPath,
   Handle,
   MarkerType,
   Position,
@@ -47,6 +48,10 @@ const START = "__start";
 const ROW = 200;
 const COLUMN_X = 0;
 const SIDE_COLUMN = 380;
+// Cards are 256px wide (w-64) and Start/End pills 100px, so this centres the pills on the cards.
+const CARD_WIDTH = 256;
+const TERMINAL_WIDTH = 100;
+const TERMINAL_X = (CARD_WIDTH - TERMINAL_WIDTH) / 2;
 /** Each route from a step gets its own lane to the right, so parallel routes don't overlap. */
 const laneOffset = (routeIndex: number) => 36 + routeIndex * 26;
 
@@ -98,7 +103,7 @@ function toGraph(form: Form) {
   const autoY = (i: number) => (i + 1) * ROW;
   const spine = spineOf(form);
   const nodes: FlowNode[] = [
-    { id: START, type: "terminal", position: { x: COLUMN_X + 82, y: 0 }, data: { kind: "start" }, draggable: false, deletable: false },
+    { id: START, type: "terminal", position: { x: COLUMN_X + TERMINAL_X, y: 0 }, data: { kind: "start" }, draggable: false, deletable: false },
     ...form.steps.map<StepNode>((step, index) => ({
       id: step.id,
       type: "step",
@@ -109,7 +114,7 @@ function toGraph(form: Form) {
     {
       id: END,
       type: "terminal",
-      position: { x: COLUMN_X + 82, y: autoY(form.steps.length) },
+      position: { x: COLUMN_X + TERMINAL_X, y: autoY(form.steps.length) },
       data: { kind: "end" },
       deletable: false,
     },
@@ -243,12 +248,15 @@ export function FlowEditor({ form, onEdit, onOpenStep }: FlowEditorProps) {
           <Background variant={BackgroundVariant.Dots} gap={18} size={1.2} color="#d5ddef" />
           <Controls showInteractive={false} />
         </ReactFlow>
+        {/* Only useful once cards have been dragged: puts every card back in its automatic spot. */}
         <button
           type="button"
+          disabled={!form.steps.some((s) => s.position)}
+          title="Put every card back in its automatic position"
           onClick={() => onEdit((d) => ops.clearStepPositions(d))}
-          className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-medium text-foreground shadow-sm hover:bg-muted"
+          className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-medium text-foreground shadow-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <LayoutGrid className="size-3.5" /> Tidy up
+          <LayoutGrid className="size-3.5" aria-hidden /> Auto-arrange
         </button>
       </div>
 
@@ -329,16 +337,20 @@ function TerminalNodeView({ data }: NodeProps<TerminalNode>) {
 }
 
 function FlowEdgeView({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, selected, markerEnd }: EdgeProps<FlowEdge>) {
-  const [path, labelX, labelY] = getSmoothStepPath({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    sourcePosition,
-    targetPosition,
-    borderRadius: 14,
-    offset: data?.kind === "route" ? data.offset : 24,
-  });
+  // Nearly in line (e.g. Start above the first card): draw a clean straight line, not a tiny zig-zag.
+  const straight = Math.abs(sourceX - targetX) < 8 && sourcePosition === Position.Bottom;
+  const [path, labelX, labelY] = straight
+    ? getStraightPath({ sourceX, sourceY, targetX: sourceX, targetY })
+    : getSmoothStepPath({
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+        sourcePosition,
+        targetPosition,
+        borderRadius: 14,
+        offset: data?.kind === "route" ? data.offset : 24,
+      });
   const kind = data?.kind;
   const problem = data?.kind === "route" ? data.problem : null;
   const color = problem ? "#d97706" : kind === "route" ? "#09318d" : "#9aa7c7";

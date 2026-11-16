@@ -87,7 +87,7 @@ The **Flow** tab draws the form as a flowchart (built on [React Flow](https://re
 - **Drag the blue dot** on the right of a step to a later step, or to End, to add a **route**: *if City is Bengaluru, go to "Visit a studio"*. Click a line to change its condition or destination.
 - **Drag the bottom dot** to change where everyone else goes (the dashed "Otherwise" line).
 - Routes are checked in order and the first match wins. They **only go forward**, so a form can never loop; backward connections are refused.
-- Steps reached only through a route are laid out in a side column, and each route gets its own lane, so branches read as branches. Cards can be dragged; **Tidy up** resets the layout. Undo and redo cover everything, including moving cards.
+- Steps reached only through a route are laid out in a side column, and each route gets its own lane, so branches read as branches. Cards can be dragged; **Auto-arrange** puts them back. Undo and redo cover everything, including moving cards.
 
 One function, `resolveFlow()` in `src/lib/forms/logic.ts`, walks the form with the respondent's answers and returns the steps they'll see and the questions that are visible. The builder preview, the public form and server-side validation all call it, so they can't disagree. Answers to steps that were skipped count as empty, and routes that point backwards or test a later question are ignored and flagged in the editor. Covered by `flow.test.ts` and `tests/e2e/flow.spec.ts`.
 

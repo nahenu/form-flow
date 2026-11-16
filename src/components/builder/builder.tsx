@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   closestCenter,
@@ -171,6 +171,9 @@ function BuilderLoaded({ form, initialPublished }: { form: Form; initialPublishe
   const [mode, setMode] = useState<BuilderMode>("edit");
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [active, setActive] = useState<{ id: string; data: DragData } | null>(null);
+  // dnd-kit numbers its accessibility ids with a global counter that differs between
+  // server and browser; a stable id keeps them equal and avoids a hydration mismatch.
+  const dndId = useId();
   const [overStepId, setOverStepId] = useState<string | null>(null);
   // Next keeps the previous route mounted (hidden), so never query `main` globally.
   const canvasRef = useRef<HTMLElement>(null);
@@ -424,6 +427,7 @@ function BuilderLoaded({ form, initialPublished }: { form: Form; initialPublishe
           </main>
         ) : (
           <DndContext
+            id={dndId}
             sensors={sensors}
             collisionDetection={collisionDetection}
             onDragStart={onDragStart}
